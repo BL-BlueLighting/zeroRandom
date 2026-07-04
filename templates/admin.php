@@ -41,6 +41,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    // ── Create Fake Stock ──
+    if ($postAction === 'create_fake_stock') {
+        $symbol = strtoupper(trim($_POST['fake_symbol'] ?? ''));
+        $name = trim($_POST['fake_name'] ?? '');
+        $rarity = $_POST['fake_rarity'] ?? 'common';
+        $price = max(0.01, (float)($_POST['fake_price'] ?? 10));
+        $category = trim($_POST['fake_category'] ?? '未分类');
+        $adapterKey = 'fake_' . time();
+
+        if ($symbol && $name) {
+            try {
+                $db->prepare("
+                    INSERT INTO stocks (symbol, name, adapter_key, adapter_name, category, rarity,
+                        total_supply, circulating_supply, base_price, current_price, prev_price,
+                        price_change_pct, volume_24h, market_cap, metadata, is_active)
+                    VALUES (?, ?, ?, 'fake', ?, ?,
+                        1000, 1000, ?, ?, ?, 0, 0, ROUND(? * 1000, 2), '{\"source\":\"siliconflow_is_sb\"}', 1)
+                ")->execute([$symbol, $name, $adapterKey, $category, $rarity, $price, $price, $price]);
+                $stockId = (int)$db->lastInsertId();
+                $db->prepare("INSERT INTO stock_prices (stock_id, price, ac_ratio, submit_count, ac_count) VALUES (?, ?, 0.5, 1, 0)")
+                    ->execute([$stockId, $price]);
+                $message = "✅ 假题目 {$symbol} - {$name} 已创建（{$rarity}，初始价 {$price}）";
+            } catch (Exception $e) {
+                $message = '❌ 创建失败: ' . $e->getMessage();
+            }
+        } else { $message = '❌ 题号和名称不能为空。'; }
+    }
+
     // ── Gacha Weights ──
     if ($postAction === 'set_weights') {
         $weights = [
@@ -477,6 +505,45 @@ include __DIR__ . '/layout/header.php';
             <form method="POST">
                 <input type="hidden" name="action" value="refresh_stocks">
                 <button class="btn btn-accent">🔄 刷新股价</button>
+            </form>
+        </section>
+
+        <!-- Fake Stock Generator -->
+        <section class="admin-section">
+            <h2>🪪 假题目生成器</h2>
+            <p class="text-muted">创建假题目作为股票，来源标记为 siliconflow_is_sb</p>
+            <form method="POST" class="admin-form">
+                <input type="hidden" name="action" value="create_fake_stock">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>题号 (Symbol)</label>
+                        <input type="text" name="fake_symbol" required class="form-input" placeholder="如 FAKE001" style="width:120px">
+                    </div>
+                    <div class="form-group" style="flex:2">
+                        <label>题目名称</label>
+                        <input type="text" name="fake_name" required class="form-input" placeholder="如 测试题目 A">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>稀有度</label>
+                        <select name="fake_rarity" class="form-input" style="width:120px">
+                            <option value="common">普通</option>
+                            <option value="rare">稀有</option>
+                            <option value="epic">史诗</option>
+                            <option value="legendary">传说</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>初始市场价格</label>
+                        <input type="number" name="fake_price" value="10" min="0.01" step="0.01" class="form-input" style="width:100px">
+                    </div>
+                    <div class="form-group" style="flex:1">
+                        <label>分类</label>
+                        <input type="text" name="fake_category" value="未分类" class="form-input" placeholder="分类">
+                    </div>
+                </div>
+                <button class="btn btn-primary">🪪 创建假题目</button>
             </form>
         </section>
 
