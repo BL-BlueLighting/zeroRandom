@@ -42,9 +42,10 @@ class MarketEngine {
         $stock = StockEngine::getStock($l['stock_id']);
         $limitedPremium = 1.0;
         if ($stock && !empty($stock['limited_edition'])) {
-            $checkHold = $db->prepare("SELECT id FROM holdings WHERE user_id = ? AND stock_id = ? AND quantity > 0");
+            $checkHold = $db->prepare("SELECT id, quantity FROM holdings WHERE user_id = ? AND stock_id = ?");
             $checkHold->execute([$buyerId, $l['stock_id']]);
-            if ($checkHold->fetch()) {
+            $existing = $checkHold->fetch();
+            if ($existing && (int)$existing['quantity'] > 0) {
                 $limitedPremium = 1.15;
             }
         }
