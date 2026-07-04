@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // ── HydroOJ Config ──
     if ($postAction === 'save_hydroj_config') {
-        $fields = ['db_host', 'db_port', 'db_name', 'db_user', 'db_pass', 'oj_url', 'category_source'];
+        $fields = ['oj_url', 'api_token', 'category_source'];
         foreach ($fields as $f) {
             platform_config_set('hydroj', $f, $_POST[$f] ?? '');
         }
@@ -383,6 +383,7 @@ include __DIR__ . '/layout/header.php';
                 </div>
                 <form method="POST" class="admin-form">
                     <input type="hidden" name="action" value="save_<?= $aKey ?>_config">
+                    <?php if ($aKey === 'hustoj'): ?>
                     <div class="form-row">
                         <div class="form-group">
                             <label>MySQL 主机</label>
@@ -407,16 +408,23 @@ include __DIR__ . '/layout/header.php';
                         <label>密码</label>
                         <input name="db_pass" type="password" value="<?= htmlspecialchars($cfg['config']['db_pass']) ?>" placeholder="(留空为无密码)" class="form-input" style="font-size:12px;padding:6px 8px">
                     </div>
+                    <?php endif; ?>
                     <div class="form-row">
                         <div class="form-group" style="flex:2">
                             <label>OJ 网站地址</label>
                             <input name="oj_url" value="<?= htmlspecialchars($cfg['config']['oj_url']) ?>" placeholder="http://oj.example.com" class="form-input" style="font-size:12px;padding:6px 8px">
                         </div>
                         <div class="form-group" style="flex:1">
-                            <label>题源/域</label>
-                            <input name="category_source" value="<?= htmlspecialchars($cfg['config']['category_source']) ?>" placeholder="留空全部" class="form-input" style="font-size:12px;padding:6px 8px">
+                            <label><?= $aKey === 'hydroj' ? '域/API Token' : '题源分类' ?></label>
+                            <input name="<?= $aKey === 'hydroj' ? 'api_token' : 'category_source' ?>" value="<?= htmlspecialchars($aKey === 'hydroj' ? platform_config('hydroj', 'api_token', '') : $cfg['config']['category_source']) ?>" placeholder="<?= $aKey === 'hydroj' ? 'API Token (可选)' : '留空全部' ?>" class="form-input" style="font-size:12px;padding:6px 8px">
                         </div>
                     </div>
+                    <?php if ($aKey === 'hustoj'): ?>
+                    <div class="form-group">
+                        <label>题源分类 (可选)</label>
+                        <input name="category_source" value="<?= htmlspecialchars($cfg['config']['category_source']) ?>" placeholder="留空全部" class="form-input" style="font-size:12px;padding:6px 8px">
+                    </div>
+                    <?php endif; ?>
                     <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
                         <button class="btn btn-sm btn-primary" style="font-size:12px">💾 启用并保存</button>
                         <span style="font-size:12px">

@@ -2,121 +2,94 @@
 /**
  * OIManka - HydroOJ Adapter
  *
- * Connects to a HydroOJ MySQL database.
- * All config read from DB (set via admin panel).
- *
- * Mapping:
- *   problem table → stocks
- *   solution / record table → AC/submit counts
- *   user table → token earnings (1 AC = 10 tokens)
- *
- * HydroOJ MySQL table structure:
- *   problem - pid, title, content, ...
- *   record - rid, pid, uid, status (status=0 = AC), ...
- *   user - uid, uname, ...
- *   contest_problem - pid, ...
+ * Connects to HydroOJ via its REST API (MongoDB backend).
+ * HydroOJ 使用 MongoDB，通过 HTTP API 获取数据。
  */
 
 class HydrojAdapter implements AdapterInterface {
 
-    private ?PDO $connection = null;
     private ?string $configError = null;
 
     public function getName(): string { return 'hydroj'; }
     public function getDisplayName(): string { return 'HydroOJ'; }
     public function getDescription(): string {
-        return '连接 HydroOJ 判题系统数据库，将题目映射为股票，AC数量转为代币。';
+        return '通过 API 连接 HydroOJ，将题目映射为股票，AC数量转为代币。';
     }
 
     private function getConfig(): array {
-        $host = platform_config('hydroj', 'db_host');
-        if (!$host) {
-            $this->configError = 'HydroOJ 尚未配置。请在管理后台设置数据库连接信息。';
+        $url = platform_config('hydroj', 'oj_url');
+        if (!$url) {
+            $this->configError = 'HydroOJ 尚未配置。请在管理后台设置 OJ 网站地址。';
             throw new RuntimeException($this->configError);
         }
         return [
-            'host' => $host,
-            'port' => (int)platform_config('hydroj', 'db_port', '3306'),
-            'dbname' => platform_config('hydroj', 'db_name', 'hydro'),
-            'user' => platform_config('hydroj', 'db_user', 'root'),
-            'pass' => platform_config('hydroj', 'db_pass', ''),
-            'oj_url' => platform_config('hydroj', 'oj_url', ''),
+            'oj_url' => rtrim($url, '/'),
+            'api_token' => platform_config('hydroj', 'api_token', ''),
             'category_source' => platform_config('hydroj', 'category_source', ''),
         ];
     }
 
-    private function connect(): PDO {
-        if ($this->connection === null) {
-            $c = $this->getConfig();
-            try {
-                $dsn = sprintf('mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4',
-                    $c['host'], $c['port'], $c['dbname']);
-                $this->connection = new PDO($dsn, $c['user'], $c['pass'], [
-                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4",
-                ]);
-                $this->configError = null;
-            } catch (PDOException $e) {
-                $this->configError = "HydroOJ 连接失败: " . $e->getMessage();
-                throw new RuntimeException($this->configError);
-            }
+    /**
+     * HTTP GET request to HydroOJ API.
+     */
+    private function apiGet(string $path): ?array {
+        $c = $this->getConfig();
+        $url = $c['oj_url'] . $path;
+        $ctx = stream_context_create([
+            'http' => [
+                'timeout' => 10,
+                'header' => "Accept: application/json\r\n" . ($c['api_token'] ? "Authorization: Bearer {$c['api_token']}\r\n" : ''),
+                'ignore_errors' => true,
+            ],
+        ]);
+        $result = @file_get_contents($url, false, $ctx);
+        if ($result === false) {
+            $this->configError = "HydroOJ API 请求失败: {$url}";
+            return null;
         }
-        return $this->connection;
+        $data = json_decode($result, true);
+        return is_array($data) ? $data : null;
     }
 
+    /**
+     * Fetch all problems via paginated API.
+     */
     public function fetchStocks(array $options = []): array {
-        $db = $this->connect();
         $limit = $options['limit'] ?? 99999;
-        $offset = $options['offset'] ?? 0;
-        $category = $options['category'] ?? platform_config('hydroj', 'category_source', '');
-
-        $where = "1=1";
-        $params = [];
-
-        if (!empty($category)) {
-            $where .= ' AND p.domain = ?';
-            $params[] = $category;
-        }
-
-        $sql = "
-            SELECT p.pid, p.title, p.domain,
-                   COALESCE(s.accepted, 0) AS accepted,
-                   COALESCE(s.submits, 0) AS submit
-            FROM problem p
-            LEFT JOIN (
-                SELECT pid,
-                       COUNT(*) AS submits,
-                       SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) AS accepted
-                FROM record
-                GROUP BY pid
-            ) s ON s.pid = p.pid
-            WHERE {$where} AND p.hidden != 1
-            ORDER BY p.pid ASC
-            LIMIT ? OFFSET ?
-        ";
-        $stmt = $db->prepare($sql);
-        $pi = 1;
-        foreach ($params as $p) $stmt->bindValue($pi++, $p);
-        $stmt->bindValue($pi++, (int)$limit, PDO::PARAM_INT);
-        $stmt->bindValue($pi, (int)$offset, PDO::PARAM_INT);
-        $stmt->execute();
-
         $stocks = [];
-        while ($row = $stmt->fetch()) {
-            $stocks[] = [
-                'symbol' => 'P' . $row['pid'],
-                'name' => $row['title'],
-                'adapter_key' => (string)$row['pid'],
-                'category' => $row['domain'] ?: '未分类',
-                'ac_count' => (int)$row['accepted'],
-                'submit_count' => max((int)$row['submit'], 1),
-                'metadata' => [
-                    'problem_id' => (int)$row['pid'],
-                    'domain' => $row['domain'],
-                ],
-            ];
+        $page = 1;
+        $pageSize = min(100, $limit);
+
+        while (count($stocks) < $limit) {
+            $data = $this->apiGet("/api/problem?page={$page}&size={$pageSize}");
+            if (!$data) break;
+
+            $problems = $data['data']['documents'] ?? $data['documents'] ?? $data['data'] ?? [];
+            if (empty($problems)) break;
+
+            foreach ($problems as $p) {
+                $pid = $p['pid'] ?? $p['_id'] ?? 0;
+                $title = $p['title'] ?? 'Unknown';
+                if (!$pid) continue;
+
+                $stocks[] = [
+                    'symbol' => 'P' . $pid,
+                    'name' => $title,
+                    'adapter_key' => (string)$pid,
+                    'category' => $p['domain'] ?? '未分类',
+                    'ac_count' => (int)($p['nAccept'] ?? $p['ac_count'] ?? 0),
+                    'submit_count' => max((int)($p['nSubmit'] ?? $p['submit_count'] ?? 1), 1),
+                    'metadata' => [
+                        'problem_id' => (int)$pid,
+                        'domain' => $p['domain'] ?? '',
+                    ],
+                ];
+            }
+
+            if (count($problems) < $pageSize) break;
+            $page++;
         }
+
         return $stocks;
     }
 
@@ -134,35 +107,51 @@ class HydrojAdapter implements AdapterInterface {
         return (int)($platformUserData['total_ac'] ?? 0) * TOKENS_PER_AC;
     }
 
+    /**
+     * Fetch user data by UID or username via API.
+     */
     public function fetchUserData(string $platformUserId): ?array {
-        $db = $this->connect();
-        if (is_numeric($platformUserId)) {
-            $stmt = $db->prepare("SELECT uid, uname FROM user WHERE uid = ?");
-            $stmt->execute([(int)$platformUserId]);
+        $data = $this->apiGet("/api/user/{$platformUserId}");
+        if (!$data) {
+            // Try as username lookup
+            $data = $this->apiGet("/api/user?username=" . urlencode($platformUserId));
+            if ($data && !empty($data['data']['documents'] ?? [])) {
+                $u = $data['data']['documents'][0];
+            } else {
+                return null;
+            }
         } else {
-            $stmt = $db->prepare("SELECT uid, uname FROM user WHERE uname = ?");
-            $stmt->execute([$platformUserId]);
+            $u = $data['data'] ?? $data['user'] ?? $data;
         }
-        $row = $stmt->fetch();
-        if (!$row) return null;
 
-        // Get AC/submit stats
-        $statStmt = $db->prepare("
-            SELECT
-                COUNT(*) AS total_submit,
-                SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) AS total_ac
-            FROM record
-            WHERE uid = ?
-        ");
-        $statStmt->execute([(int)$row['uid']]);
-        $stats = $statStmt->fetch();
+        $uid = $u['uid'] ?? $u['_id'] ?? 0;
+        $uname = $u['uname'] ?? $u['username'] ?? '';
+
+        if (!$uid) return null;
+
+        // Try to get submission stats
+        $ac = (int)($u['nAccept'] ?? $u['ac_count'] ?? 0);
+        $submit = (int)($u['nSubmit'] ?? $u['submit_count'] ?? 0);
+
+        // If stats not in profile, fetch from record
+        if ($submit === 0) {
+            $recData = $this->apiGet("/api/record?uid={$uid}&limit=1&count=true");
+            if ($recData) {
+                $submit = (int)($recData['count'] ?? 0);
+                // Get AC count separately
+                $acData = $this->apiGet("/api/record?uid={$uid}&status=0&limit=1&count=true");
+                if ($acData) {
+                    $ac = (int)($acData['count'] ?? 0);
+                }
+            }
+        }
 
         return [
-            'platform_user_id' => (string)$row['uid'],
-            'username' => $row['uname'],
-            'total_ac' => (int)($stats['total_ac'] ?? 0),
-            'total_submit' => (int)($stats['total_submit'] ?? 0),
-            'metadata' => ['uid' => (int)$row['uid']],
+            'platform_user_id' => (string)$uid,
+            'username' => $uname,
+            'total_ac' => $ac,
+            'total_submit' => $submit,
+            'metadata' => ['uid' => (int)$uid],
         ];
     }
 
@@ -170,32 +159,52 @@ class HydrojAdapter implements AdapterInterface {
         return $this->fetchUserData($identifier);
     }
 
+    /**
+     * Verify password via HydroOJ login API.
+     */
     public function verifyPassword(string $userId, string $password): bool {
-        $db = $this->connect();
-        $stmt = $db->prepare("SELECT `password` FROM `user` WHERE `uid` = ?");
-        $stmt->execute([$userId]);
-        $row = $stmt->fetch();
-        if (!$row) return false;
-        // HydroOJ typically uses SHA256 or bcrypt
-        if (strlen($row['password']) === 64) {
-            return strtolower($row['password']) === hash('sha256', $password);
-        }
-        return password_verify($password, $row['password']);
+        $c = $this->getConfig();
+        $url = $c['oj_url'] . '/api/login';
+        $ctx = stream_context_create([
+            'http' => [
+                'method' => 'POST',
+                'timeout' => 10,
+                'header' => "Content-Type: application/json\r\n",
+                'content' => json_encode([
+                    'uid' => (int)$userId,
+                    'password' => $password,
+                ]),
+                'ignore_errors' => true,
+            ],
+        ]);
+        $result = @file_get_contents($url, false, $ctx);
+        if ($result === false) return false;
+        $data = json_decode($result, true);
+        return isset($data['token']) || isset($data['data']['token']);
     }
 
+    /**
+     * Send station message via HydroOJ API (if supported).
+     */
     public function sendMail(string $toUserId, string $title, string $content): bool {
-        $db = $this->connect();
-        // HydroOJ may not have a mail table — try common schemas
-        try {
-            $stmt = $db->prepare("
-                INSERT INTO `mail` (`to_user`, `from_user`, `title`, `content`, `new_mail`, `in_date`)
-                VALUES (?, 'OIManka', ?, ?, 1, NOW())
-            ");
-            return $stmt->execute([$toUserId, $title, $content]);
-        } catch (PDOException $e) {
-            // Fallback: mail table may not exist in HydroOJ
-            return false;
-        }
+        $c = $this->getConfig();
+        // HydroOJ may support POST /api/message or similar
+        $url = $c['oj_url'] . '/api/message';
+        $ctx = stream_context_create([
+            'http' => [
+                'method' => 'POST',
+                'timeout' => 10,
+                'header' => "Content-Type: application/json\r\n" . ($c['api_token'] ? "Authorization: Bearer {$c['api_token']}\r\n" : ''),
+                'content' => json_encode([
+                    'recipient' => (int)$toUserId,
+                    'title' => $title,
+                    'content' => $content,
+                ]),
+                'ignore_errors' => true,
+            ],
+        ]);
+        $result = @file_get_contents($url, false, $ctx);
+        return $result !== false;
     }
 
     public function syncStocks(): array {
@@ -293,11 +302,8 @@ class HydrojAdapter implements AdapterInterface {
 
     public function testConnection(): bool {
         try {
-            $c = $this->getConfig();
-            if (empty($c['host'])) return false;
-            $db = $this->connect();
-            $db->query("SELECT 1 FROM problem LIMIT 1");
-            return true;
+            $data = $this->apiGet('/api/problem?size=1');
+            return $data !== null;
         } catch (Exception $e) {
             return false;
         }
@@ -305,12 +311,8 @@ class HydrojAdapter implements AdapterInterface {
 
     public function getConfigFields(): array {
         return [
-            ['key' => 'db_host', 'label' => 'MySQL 主机', 'type' => 'text', 'required' => true],
-            ['key' => 'db_port', 'label' => '端口', 'type' => 'number', 'required' => true],
-            ['key' => 'db_name', 'label' => '数据库名', 'type' => 'text', 'required' => true],
-            ['key' => 'db_user', 'label' => '用户名', 'type' => 'text', 'required' => true],
-            ['key' => 'db_pass', 'label' => '密码', 'type' => 'password', 'required' => false],
-            ['key' => 'oj_url', 'label' => 'OJ 网站地址', 'type' => 'text', 'required' => false],
+            ['key' => 'oj_url', 'label' => 'OJ 网站地址', 'type' => 'text', 'required' => true],
+            ['key' => 'api_token', 'label' => 'API Token (可选)', 'type' => 'password', 'required' => false],
             ['key' => 'category_source', 'label' => '域 (可选)', 'type' => 'text', 'required' => false],
         ];
     }
