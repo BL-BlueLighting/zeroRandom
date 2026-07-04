@@ -73,6 +73,7 @@ a{color:#4da6ff}
         'user_hustoj_bindings' => 'OJ绑定表',
         'price_overrides' => '价格覆盖表',
         'platform_config' => '平台配置表',
+        'claimed_rewards' => '领取记录表',
         'card_pools' => '卡池表',
         'card_pool_items' => '卡池题目表',
         'card_market_listings' => '卡牌市场表',
@@ -377,6 +378,18 @@ function runColumnMigrations(PDO $db): void {
         "ALTER TABLE card_pools ADD COLUMN is_limited INTEGER DEFAULT 0",
         "ALTER TABLE card_pools ADD COLUMN expires_at DATETIME",
         "ALTER TABLE stocks ADD COLUMN limited_edition INTEGER DEFAULT 0",
+        "ALTER TABLE notifications ADD COLUMN reward_tokens REAL DEFAULT 0",
+        "ALTER TABLE notifications ADD COLUMN reward_stock_id INTEGER DEFAULT 0",
+        "ALTER TABLE notifications ADD COLUMN reward_stock_quantity INTEGER DEFAULT 0",
+        "CREATE TABLE IF NOT EXISTS claimed_rewards (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            notification_id INTEGER NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id),
+            FOREIGN KEY (notification_id) REFERENCES notifications(id),
+            UNIQUE(user_id, notification_id)
+        )",
     ];
     foreach ($cmds as $sql) {
         try { $db->exec($sql); } catch (PDOException $e) { /* ignore if exists */ }

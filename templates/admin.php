@@ -281,6 +281,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
+
+    // ── Post Announcement ──
+    if ($postAction === 'post_announcement') {
+        $msg = trim($_POST['announce_message'] ?? '');
+        $tokens = min((float)($_POST['announce_tokens'] ?? 0), 100000);
+        $stockId = (int)($_POST['announce_stock_id'] ?? 0);
+        $stockQty = max(1, (int)($_POST['announce_stock_qty'] ?? 1));
+        if ($msg) {
+            $db->prepare("INSERT INTO notifications (message, reward_tokens, reward_stock_id, reward_stock_quantity) VALUES (?, ?, ?, ?)")
+                ->execute([$msg, $tokens, $stockId, $stockQty]);
+            $message = '✅ 公告已发布！';
+        } else {
+            $message = '❌ 公告内容不能为空。';
+        }
+    }
 }
 
 // Current data
@@ -548,10 +563,44 @@ include __DIR__ . '/layout/header.php';
         </section>
 
         <section class="admin-section">
-            <h2>📢 全站通知</h2>
-            <div class="tx-list">
+            <h2>📢 发布公告</h2>
+            <form method="POST" class="admin-form" action="<?= url('/admin.php') ?>">
+                <input type="hidden" name="action" value="post_announcement">
+                <div class="form-group">
+                    <label>公告内容（支持 HTML）</label>
+                    <textarea name="announce_message" rows="3" class="form-input" required></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>代币奖励（≤ 100000）</label>
+                        <input type="number" name="announce_tokens" value="0" min="0" max="100000" class="form-input" style="width:120px">
+                    </div>
+                    <div class="form-group">
+                        <label>股票（可选）</label>
+                        <select name="announce_stock_id" class="form-input">
+                            <option value="">无</option>
+                            <?php foreach ($stocks as $s): ?>
+                            <option value="<?= $s['id'] ?>"><?= htmlspecialchars($s['symbol']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>股票数量</label>
+                        <input type="number" name="announce_stock_qty" value="1" min="1" class="form-input" style="width:80px">
+                    </div>
+                    <button class="btn btn-primary" style="align-self:flex-end">📢 发布</button>
+                </div>
+            </form>
+            <div style="margin-top:16px;max-height:300px;overflow-y:auto">
             <?php foreach ($notifications as $n): ?>
-            <div class="tx-item"><span class="note-text"><?= $n['message'] ?></span><span class="tx-time"><?= $n['created_at'] ?></span></div>
+            <div class="tx-item" style="font-size:13px">
+                <span class="note-text"><?= $n['message'] ?></span>
+                <span class="tx-time" style="font-size:11px;white-space:nowrap">
+                    <?php if ((float)$n['reward_tokens'] > 0): ?>🪙+<?= $n['reward_tokens'] ?> <?php endif; ?>
+                    <?php if ((int)$n['reward_stock_id'] > 0): ?>📈x<?= $n['reward_stock_quantity'] ?> <?php endif; ?>
+                    <?= $n['created_at'] ?>
+                </span>
+            </div>
             <?php endforeach; ?>
             </div>
         </section>

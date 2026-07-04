@@ -315,12 +315,38 @@ class Database {
             "ALTER TABLE card_pools ADD COLUMN is_limited INTEGER DEFAULT 0",
             "ALTER TABLE card_pools ADD COLUMN expires_at DATETIME",
             "ALTER TABLE stocks ADD COLUMN limited_edition INTEGER DEFAULT 0",
+            "ALTER TABLE notifications ADD COLUMN reward_tokens REAL DEFAULT 0",
+            "ALTER TABLE notifications ADD COLUMN reward_stock_id INTEGER DEFAULT 0",
+            "ALTER TABLE notifications ADD COLUMN reward_stock_quantity INTEGER DEFAULT 0",
         ];
         foreach ($columnMigrations as $sql) {
             try {
                 $db->exec($sql);
             } catch (PDOException $e) {
                 // Column already exists — ignore
+            }
+        }
+
+        // New tables
+        $newTables = [
+            'claimed_rewards' => "
+                CREATE TABLE IF NOT EXISTS claimed_rewards (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    notification_id INTEGER NOT NULL,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id),
+                    FOREIGN KEY (notification_id) REFERENCES notifications(id),
+                    UNIQUE(user_id, notification_id)
+                )
+            ",
+        ];
+        foreach ($newTables as $table => $sql) {
+            try {
+                $db->exec($sql);
+                $results[$table] = 'ok';
+            } catch (PDOException $e) {
+                $results[$table] = 'error: ' . $e->getMessage();
             }
         }
 

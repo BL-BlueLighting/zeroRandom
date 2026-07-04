@@ -84,15 +84,57 @@ if (!empty($flashes)):
 <?php
 try {
     $db = Database::getInstance();
-    $note = $db->query("SELECT message FROM notifications WHERE is_active = 1 ORDER BY created_at DESC LIMIT 1")->fetch();
-    if ($note):
+    $note = $db->query("SELECT * FROM notifications WHERE is_active = 1 ORDER BY created_at DESC LIMIT 1")->fetch();
+    if ($note && trim($note['message'] ?? '')):
+        $hasReward = ((float)$note['reward_tokens'] > 0 || (int)$note['reward_stock_id'] > 0);
+        $claimed = false;
+        if ($hasReward && Session::isLoggedIn()) {
+            $stmt = $db->prepare("SELECT id FROM claimed_rewards WHERE user_id = ? AND notification_id = ?");
+            $stmt->execute([Session::userId(), $note['id']]);
+            $claimed = (bool)$stmt->fetch();
+        }
 ?>
-<div class="notification-banner">
+<div class="notification-banner" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
     <span class="note-icon">📢</span>
-    <span class="note-text"><?= $note['message'] ?></span>
+    <span class="note-text" style="flex:1"><?= $note['message'] ?></span>
+    <?php if ($hasReward && Session::isLoggedIn() && !$claimed): ?>
+    <button class="btn btn-xs btn-primary" onclick="claimReward(<?= $note['id'] ?>)" id="claimBtn<?= $note['id'] ?>">🎁 领取奖励</button>
+    <?php elseif ($claimed): ?>
+    <span class="text-muted" style="font-size:12px">✅ 已领取</span>
+    <?php endif; ?>
 </div>
 <?php endif;
 } catch (Exception $e) { /* table might not exist yet */ }
 ?>
+<?php if (Session::isLoggedIn()): ?>
+<script>
+async function claimReward(id) {
+    const btn = document.getElementById('claimBtn' + id);
+    if (btn) btn.disabled = true;
+    try {
+        const resp = await fetch('<?= url('/claim_reward.php') ?>', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'notification_id=' + id
+        });
+        const data = await resp.json();
+        if (data.success) {
+            if (btn) {
+                btn.textContent = '✅ 已领取';
+                btn.disabled = true;
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-outline');
+            }
+            // Update token display
+            const tokenEl = document.querySelector('.token-display');
+            if (tokenEl && data.balance) tokenEl.textContent = '🪙 ' + data.balance.toFixed(1);
+        } else {
+            alert(data.message);
+            if (btn) btn.disabled = false;
+        }
+    } catch(e) { alert('领取失败'); if (btn) btn.disabled = false; }
+}
+</script>
+<?php endif; ?>
 
 <main class="site-main">
