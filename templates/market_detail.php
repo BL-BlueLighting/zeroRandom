@@ -120,11 +120,15 @@ include __DIR__ . '/layout/header.php';
                 <input type="hidden" name="stock_id" value="<?= $stockId ?>">
                 <label>买入数量</label>
                 <input type="number" name="quantity" min="1" value="1" class="trade-input">
+                <?php
+                $buyPremium = (!empty($stock['limited_edition']) && $userHolding && $userHolding['quantity'] > 0) ? 1.15 : 1.3;
+                $buyPct = $buyPremium === 1.15 ? '+15%' : '+30%';
+                ?>
                 <div class="trade-preview">
-                    预计花费: 🪙 <span class="preview-amount" data-price="<?= round($stock['current_price'] * 1.3, 2) ?>">
-                        <?= number_format($stock['current_price'] * 1.3, 2) ?>
+                    预计花费: 🪙 <span class="preview-amount" data-price="<?= round($stock['current_price'] * $buyPremium, 2) ?>">
+                        <?= number_format($stock['current_price'] * $buyPremium, 2) ?>
                     </span>
-                    <span class="text-muted">(市价 <?= number_format($stock['current_price'], 2) ?> +30%)</span>
+                    <span class="text-muted">(市价 <?= number_format($stock['current_price'], 2) ?> <?= $buyPct ?>)</span>
                     (含 <?= TRADE_FEE_PCT ?>% 手续费)
                 </div>
                 <button type="submit" class="btn btn-primary btn-block">📈 买入</button>

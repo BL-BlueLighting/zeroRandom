@@ -26,11 +26,20 @@ class TradingEngine {
             return ['success' => false, 'message' => '该股票不存在或已下架。'];
         }
         if (!empty($stock['limited_edition'])) {
-            return ['success' => false, 'message' => '绝版卡牌仅可在卡牌市场交易，无法直接买卖。'];
+            // Must already hold this limited card to buy more from stock page
+            $holdDb = Database::getInstance();
+            $holdCheck = $holdDb->prepare("SELECT id, quantity FROM holdings WHERE user_id = ? AND stock_id = ?");
+            $holdCheck->execute([$userId, $stockId]);
+            $existingHold = $holdCheck->fetch();
+            if (!$existingHold || (int)$existingHold['quantity'] <= 0) {
+                return ['success' => false, 'message' => '未持有此绝版卡牌，请通过卡牌市场购买。'];
+            }
+            // 15% premium for existing holders
+            $pricePerShare = round((float)$stock['current_price'] * 1.15, 2);
+        } else {
+            // Direct buy price: 30% premium over market price
+            $pricePerShare = round((float)$stock['current_price'] * 1.3, 2);
         }
-
-        // Direct buy price: 30% premium over market price
-        $pricePerShare = round((float)$stock['current_price'] * 1.3, 2);
         $subtotal = $pricePerShare * $quantity;
         $fee = round($subtotal * (TRADE_FEE_PCT / 100), 2);
         $totalCost = $subtotal + $fee;
