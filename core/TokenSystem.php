@@ -95,9 +95,8 @@ class TokenSystem {
             $stmt->execute([$amount, $amount, $toUserId]);
 
             // Log both sides
-            $logStmt = $db->prepare("INSERT INTO transactions (user_id, type, total_amount, notes) VALUES (?, 'transfer_out', ?, ?)");
-            $logStmt->execute([$fromUserId, -$amount, "转账给用户 #{$toUserId}"]);
-
+            $logStmt = $db->prepare("INSERT INTO transactions (user_id, type, total_amount, notes) VALUES (?, ?, ?, ?)");
+            $logStmt->execute([$fromUserId, 'transfer_out', -$amount, "转账给用户 #{$toUserId}"]);
             $logStmt->execute([$toUserId, 'reward', $amount, "收到用户 #{$fromUserId} 转账"]);
 
             $db->commit();
