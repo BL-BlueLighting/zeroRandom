@@ -4,7 +4,7 @@ Session::requireAuth();
 header('Content-Type: application/json; charset=utf-8');
 
 if (!platform_configured('hustoj')) {
-    echo json_encode(['success' => false, 'message' => 'HustOJ 尚未配置。']);
+    echo json_encode(['success' => false, 'message' => 'OJ 尚未配置。']);
     exit;
 }
 
@@ -39,7 +39,8 @@ $db->prepare("UPDATE bind_verifications SET verified = 1 WHERE id = ?")
     ->execute([$verification['id']]);
 
 try {
-    $adapter = AdapterManager::get('hustoj');
+    $activeAdapter = platform_configured('hustoj') ? 'hustoj' : (platform_configured('hydroj') ? 'hydroj' : null);
+    $adapter = $activeAdapter ? AdapterManager::get($activeAdapter) : null;
     $userData = $adapter ? $adapter->fetchUserData($verification['oj_user_id']) : null;
 
     if (!$userData) {

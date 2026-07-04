@@ -100,10 +100,12 @@ function platform_configured(string $adapter): bool {
 }
 
 /**
- * Get OJ URL for the frontend.
+ * Get OJ URL for the frontend (from whichever adapter is active).
  */
 function oj_url(): string {
-    return platform_config('hustoj', 'oj_url', '');
+    $adapter = platform_configured('hustoj') ? 'hustoj' : (platform_configured('hydroj') ? 'hydroj' : null);
+    if (!$adapter) return '';
+    return platform_config($adapter, 'oj_url', '');
 }
 define('OJ_URL_FN', true); // signal that oj_url() is available
 

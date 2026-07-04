@@ -13,8 +13,9 @@ $userId = Session::userId();
 $db = Database::getInstance();
 
 // Check HustOJ is configured
-if (!platform_configured('hustoj')) {
-    Session::flash('error', 'HustOJ 尚未配置，请联系管理员。');
+$activeAdapter = platform_configured('hustoj') ? 'hustoj' : (platform_configured('hydroj') ? 'hydroj' : null);
+if (!$activeAdapter) {
+    Session::flash('error', 'OJ 尚未配置，请联系管理员。');
     header('Location: /');
     exit;
 }
@@ -40,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif (empty($ojPassword)) {
             $message = ['error', '请输入OJ密码以验证身份。'];
         } else {
-            $adapter = AdapterManager::get('hustoj');
+            $adapter = AdapterManager::get($activeAdapter);
             if (!$adapter || !$adapter->testConnection()) {
                 $message = ['error', '无法连接到HustOJ数据库，请检查配置。'];
             } else {
@@ -88,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $remaining = ceil(($cooldown - (time() - $lastSync)) / 60);
                 $message = ['error', "同步冷却中，请在 {$remaining} 分钟后重试。"];
             } else {
-                $adapter = AdapterManager::get('hustoj');
+                $adapter = AdapterManager::get($activeAdapter);
                 if ($adapter && $adapter->testConnection()) {
                     $ojUser = $adapter->fetchUserData($binding['oj_user_id']);
                     if ($ojUser) {

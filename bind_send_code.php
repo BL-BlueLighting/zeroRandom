@@ -4,7 +4,7 @@ Session::requireAuth();
 header('Content-Type: application/json; charset=utf-8');
 
 if (!platform_configured('hustoj')) {
-    echo json_encode(['success' => false, 'message' => 'HustOJ 尚未配置。']);
+    echo json_encode(['success' => false, 'message' => 'OJ 尚未配置。']);
     exit;
 }
 
@@ -15,9 +15,10 @@ if (empty($ojUserId)) {
 }
 
 try {
-    $adapter = AdapterManager::get('hustoj');
+    $activeAdapter = platform_configured('hustoj') ? 'hustoj' : (platform_configured('hydroj') ? 'hydroj' : null);
+    $adapter = $activeAdapter ? AdapterManager::get($activeAdapter) : null;
     if (!$adapter || !$adapter->testConnection()) {
-        echo json_encode(['success' => false, 'message' => '无法连接到 HustOJ 数据库。']);
+        echo json_encode(['success' => false, 'message' => '无法连接到 OJ 数据库。']);
         exit;
     }
 
