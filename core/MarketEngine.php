@@ -111,7 +111,7 @@ class MarketEngine {
         $db = Database::getInstance();
         $offset = ($page - 1) * $perPage;
         $stmt = $db->prepare("
-            SELECT m.*, s.symbol, s.name as stock_name, s.rarity, s.current_price,
+            SELECT m.*, s.symbol, s.name as stock_name, s.rarity, s.limited_edition, s.current_price,
                    u.username as seller_name
             FROM card_market_listings m
             JOIN stocks s ON m.stock_id = s.id
@@ -132,7 +132,7 @@ class MarketEngine {
     public static function getUserListings(int $userId): array {
         $db = Database::getInstance();
         $stmt = $db->prepare("
-            SELECT m.*, s.symbol, s.name as stock_name, s.rarity, s.current_price
+            SELECT m.*, s.symbol, s.name as stock_name, s.rarity, s.limited_edition, s.current_price
             FROM card_market_listings m
             JOIN stocks s ON m.stock_id = s.id
             WHERE m.seller_id = ? AND m.status != 'cancelled'
