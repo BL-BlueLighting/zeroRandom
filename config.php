@@ -94,8 +94,12 @@ function platform_config_set(string $adapter, string $key, $value): void {
 
 /**
  * Check if an adapter is configured.
+ * HustOJ uses db_host; HydroOJ uses oj_url.
  */
 function platform_configured(string $adapter): bool {
+    if ($adapter === 'hydroj') {
+        return !empty(platform_config($adapter, 'oj_url'));
+    }
     return !empty(platform_config($adapter, 'db_host'));
 }
 
