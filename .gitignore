@@ -1,0 +1,8 @@
+deploy.sh
+data/*.db
+data/*.db-wal
+data/*.db-shm
+.claude/
+*.swp
+*.swo
+.DS_Store
