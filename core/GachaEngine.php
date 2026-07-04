@@ -459,6 +459,9 @@ class GachaEngine {
 
         $results = [];
         $poolStockIds = PoolEngine::getPoolStockIds($poolId);
+        // Check if pool is limited
+        $pool = PoolEngine::getPool($poolId);
+        $isLimited = $pool && !empty($pool['is_limited']);
 
         for ($i = 0; $i < $count; $i++) {
             // Determine target rarity with pity
@@ -478,6 +481,19 @@ class GachaEngine {
             } else {
                 $weights = self::getRarityWeights();
                 $rarity = self::rollFromWeights($weights);
+            }
+
+            // Limited pool: only 35% chance to actually draw
+            if ($isLimited && !$forceLegendary) {
+                if (mt_rand(1, 100) > 35) {
+                    $rarityName = self::RARITY_NAMES[$rarity] ?? $rarity;
+                    $results[] = [
+                        'id' => 0, 'symbol' => '💨', 'name' => "Punlucky 没有抽中 [{$rarityName}]",
+                        'rarity' => $rarity, 'rarity_name' => '未中', 'rarity_color' => '#666',
+                        'price' => 0, 'punlucky' => true,
+                    ];
+                    continue;
+                }
             }
 
             // Get a stock of the target rarity from the pool
