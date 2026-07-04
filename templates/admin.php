@@ -69,6 +69,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else { $message = '❌ 题号和名称不能为空。'; }
     }
 
+    // ── Bulk Edit Stocks ──
+    if ($postAction === 'bulk_edit_stocks') {
+        $prefix = strtoupper(trim($_POST['bulk_prefix'] ?? ''));
+        $action = $_POST['bulk_action'] ?? '';
+        $value = trim($_POST['bulk_value'] ?? '');
+
+        if ($prefix && $action && $value !== '') {
+            $where = "symbol LIKE '{$prefix}%' AND is_active = 1";
+            switch ($action) {
+                case 'rarity':
+                    $db->exec("UPDATE stocks SET rarity = '{$value}' WHERE {$where}");
+                    $message = "✅ 已将 {$prefix}* 开头的股票稀有度设为 {$value}";
+                    break;
+                case 'category':
+                    $db->exec("UPDATE stocks SET category = '{$value}' WHERE {$where}");
+                    $message = "✅ 已将 {$prefix}* 开头的股票分类设为 {$value}";
+                    break;
+                case 'price_pct':
+                    $pct = (float)$value;
+                    $db->exec("UPDATE stocks SET prev_price = current_price, current_price = ROUND(current_price * (1 + {$pct} / 100), 2), price_change_pct = {$pct} WHERE {$where}");
+                    $message = "✅ 已将 {$prefix}* 开头的股票价格调整 {$pct}%";
+                    break;
+                case 'limited':
+                    $set = $value === '1' ? '1' : '0';
+                    $db->exec("UPDATE stocks SET limited_edition = {$set} WHERE {$where}");
+                    $message = "✅ 已将 {$prefix}* 开头的股票绝版状态设为 {$set}";
+                    break;
+                default:
+                    $message = '❌ 无效操作。';
+            }
+        } else { $message = '❌ 请填写完整。'; }
+    }
+
     // ── Contact Config ──
     if ($postAction === 'save_contact_config') {
         platform_config_set('system', 'contact_qq', $_POST['contact_qq'] ?? '');
@@ -578,6 +611,35 @@ include __DIR__ . '/layout/header.php';
                     </div>
                 </div>
                 <button class="btn btn-primary">🪪 创建假题目</button>
+            </form>
+        </section>
+
+        <!-- Bulk Edit Stocks -->
+        <section class="admin-section">
+            <h2>📊 批量修改股票</h2>
+            <p class="text-muted">按题号前缀批量修改股票属性</p>
+            <form method="POST" class="admin-form">
+                <input type="hidden" name="action" value="bulk_edit_stocks">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>题号前缀</label>
+                        <input type="text" name="bulk_prefix" required class="form-input" style="width:100px" placeholder="如 S">
+                    </div>
+                    <div class="form-group">
+                        <label>操作</label>
+                        <select name="bulk_action" class="form-input" style="width:140px">
+                            <option value="rarity">设置稀有度</option>
+                            <option value="category">设置分类</option>
+                            <option value="price_pct">调整价格 (%)</option>
+                            <option value="limited">设置绝版状态</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex:1">
+                        <label>值</label>
+                        <input type="text" name="bulk_value" required class="form-input" placeholder="稀有度: common/rare/epic/legendary | 价格: 正数涨负数跌 | 绝版: 1或0">
+                    </div>
+                    <button class="btn btn-primary" style="align-self:flex-end">⚡ 执行</button>
+                </div>
             </form>
         </section>
 
