@@ -485,7 +485,7 @@ class GachaEngine {
 
             // Limited pool: only 35% chance to actually draw
             if ($isLimited && !$forceLegendary) {
-                if (mt_rand(1, 100) > 35) {
+                if (mt_rand(1, 100) > 5) {
                     $rarityName = self::RARITY_NAMES[$rarity] ?? $rarity;
                     $results[] = [
                         'id' => 0, 'symbol' => '💨', 'name' => "Punlucky 没有抽中 [{$rarityName}]",
