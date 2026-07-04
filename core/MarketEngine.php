@@ -38,7 +38,19 @@ class MarketEngine {
         if (!$l) return ['success' => false, 'message' => '该挂单已售出或不存在。'];
         if ($l['seller_id'] == $buyerId) return ['success' => false, 'message' => '不能购买自己的挂单。'];
 
-        $totalCost = (float)$l['price'] * (int)$l['quantity'];
+        // Check if stock is limited edition and buyer already owns it → 15% premium
+        $stock = StockEngine::getStock($l['stock_id']);
+        $limitedPremium = 1.0;
+        if ($stock && !empty($stock['limited_edition'])) {
+            $checkHold = $db->prepare("SELECT id FROM holdings WHERE user_id = ? AND stock_id = ? AND quantity > 0");
+            $checkHold->execute([$buyerId, $l['stock_id']]);
+            if ($checkHold->fetch()) {
+                $limitedPremium = 1.15;
+            }
+        }
+
+        $unitPrice = (float)$l['price'] * $limitedPremium;
+        $totalCost = $unitPrice * (int)$l['quantity'];
         if (!TokenSystem::canAfford($buyerId, $totalCost)) {
             return ['success' => false, 'message' => "代币不足！需要 {$totalCost} 枚。"];
         }
@@ -57,12 +69,12 @@ class MarketEngine {
             $h = $hold->fetch();
             if ($h) {
                 $newQty = $h['quantity'] + $l['quantity'];
-                $newCost = ($h['avg_cost'] * $h['quantity'] + $l['price'] * $l['quantity']) / $newQty;
+                $newCost = ($h['avg_cost'] * $h['quantity'] + $unitPrice * $l['quantity']) / $newQty;
                 $db->prepare("UPDATE holdings SET quantity = ?, avg_cost = ? WHERE id = ?")
                     ->execute([$newQty, $newCost, $h['id']]);
             } else {
                 $db->prepare("INSERT INTO holdings (user_id, stock_id, quantity, avg_cost) VALUES (?, ?, ?, ?)")
-                    ->execute([$buyerId, $l['stock_id'], $l['quantity'], $l['price']]);
+                    ->execute([$buyerId, $l['stock_id'], $l['quantity'], $unitPrice]);
             }
             // Mark listing as sold
             $db->prepare("UPDATE card_market_listings SET status = 'sold', buyer_id = ?, sold_at = datetime('now') WHERE id = ?")
