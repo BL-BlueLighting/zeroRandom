@@ -70,6 +70,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // ── Bulk Edit Stocks ──
+    // ── All-in Toggle ──
+    if ($postAction === 'toggle_allin') {
+        platform_config_set('system', 'allin_enabled', $_POST['allin_value'] ?? '0');
+        $message = '✅ 梭哈功能已' . (($_POST['allin_value'] ?? '0') === '1' ? '开启' : '关闭');
+    }
+
     if ($postAction === 'bulk_edit_stocks') {
         $prefix = strtoupper(trim($_POST['bulk_prefix'] ?? ''));
         $action = $_POST['bulk_action'] ?? '';
@@ -710,6 +716,19 @@ include __DIR__ . '/layout/header.php';
                     </div>
                 </form>
             </details>
+        </section>
+
+        <!-- All-in Toggle -->
+        <section class="admin-section">
+            <h2>🔴 梭哈开关</h2>
+            <form method="POST" style="display:flex;gap:12px;align-items:center">
+                <input type="hidden" name="action" value="toggle_allin">
+                <?php $allinEnabled = platform_config('system', 'allin_enabled', '1'); ?>
+                <span class="text-muted">梭哈功能：</span>
+                <button class="btn btn-sm <?= $allinEnabled === '1' ? 'btn-primary' : 'btn-outline' ?>" name="allin_value" value="<?= $allinEnabled === '1' ? '0' : '1' ?>">
+                    <?= $allinEnabled === '1' ? '✅ 已开启' : '⛔ 已关闭' ?>
+                </button>
+            </form>
         </section>
 
         <!-- Contact Config -->

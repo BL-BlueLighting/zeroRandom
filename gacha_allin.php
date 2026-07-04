@@ -21,6 +21,12 @@ $userId = Session::userId();
 $userId = Session::userId();
 $db = Database::getInstance();
 
+// Check if all-in is enabled
+if (platform_config('system', 'allin_enabled', '1') !== '1') {
+    echo json_encode(['success' => false, 'message' => '梭哈功能已关闭。']);
+    exit;
+}
+
 // Cooldown check: 30 minutes
 $stmt = $db->prepare("SELECT created_at FROM gacha_logs WHERE user_id = ? AND pull_type = 'allin' ORDER BY created_at DESC LIMIT 1");
 $stmt->execute([$userId]);
