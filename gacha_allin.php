@@ -18,9 +18,28 @@ $input = json_decode(file_get_contents('php://input'), true) ?? [];
 $poolId = (int)($input['pool_id'] ?? 0);
 $userId = Session::userId();
 
+$userId = Session::userId();
+$db = Database::getInstance();
+
+// Cooldown check: 30 minutes
+$stmt = $db->prepare("SELECT created_at FROM gacha_logs WHERE user_id = ? AND pull_type = 'allin' ORDER BY created_at DESC LIMIT 1");
+$stmt->execute([$userId]);
+$lastAllin = $stmt->fetch();
+if ($lastAllin) {
+    $lastTime = strtotime($lastAllin['created_at']);
+    $elapsed = time() - $lastTime;
+    if ($elapsed < 1800) {
+        $remaining = ceil((1800 - $elapsed) / 60);
+        echo json_encode(['success' => false, 'message' => "梭哈冷却中，请 {$remaining} 分钟后再试。"]);
+        exit;
+    }
+}
+
 $balance = TokenSystem::getBalance($userId);
 // Keep ones digit, spend the rest
 $spendable = $balance - ($balance % 10);
+// Cap at 5,000,000
+$spendable = min($spendable, 5000000);
 $cost = GACHA_SINGLE_COST;
 
 if ($spendable < $cost) {
@@ -32,7 +51,6 @@ $count = floor($spendable / $cost);
 $totalCost = $count * $cost;
 
 // Deduct tokens directly
-$db = Database::getInstance();
 $db->prepare("UPDATE users SET token_balance = token_balance - ?, total_spent = total_spent + ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
     ->execute([$totalCost, $totalCost, $userId]);
 
@@ -54,7 +72,7 @@ for ($i = 0; $i < $count; $i++) {
     $rarity = $stock['rarity'] ?? 'common';
 
     GachaEngine::creditHolding($userId, $stockId);
-    $db->prepare("INSERT INTO gacha_logs (user_id, stock_id, rarity, pull_type, cost) VALUES (?, ?, ?, 'single', ?)")
+    $db->prepare("INSERT INTO gacha_logs (user_id, stock_id, rarity, pull_type, cost) VALUES (?, ?, ?, 'allin', ?)")
         ->execute([$userId, $stockId, $rarity, $cost]);
 
     if ($rarity === 'legendary') $legendaryCount++;

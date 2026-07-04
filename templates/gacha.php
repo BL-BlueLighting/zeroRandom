@@ -70,7 +70,7 @@ include __DIR__ . '/layout/header.php';
                 💫 百连抽 <br><small>🪙 <?= GACHA_HUNDRED_COST ?> · 保底史诗</small>
             </button>
             <button class="btn btn-danger" onclick="doAllIn()" id="btnAllIn" style="background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;border:none">
-                🔴 梭哈 <br><small>全部代币单抽 · 保留个位</small>
+                🔴 梭哈 <br><small>最多 500 万 · 30 分钟冷却</small>
             </button>
         </div>
 
@@ -214,7 +214,7 @@ function doAllIn() {
         doPullAllIn();
         return;
     }
-    allInTimer = setTimeout(() => { allInClicks = 0; btn.textContent = '🔴 梭哈 <br><small>全部代币单抽 · 保留个位</small>'; btn.style.background = 'linear-gradient(135deg,#dc2626,#ef4444)'; }, 3000);
+    allInTimer = setTimeout(() => { allInClicks = 0; btn.textContent = '🔴 梭哈 <br><small>最多 500 万 · 30 分钟冷却</small>'; btn.style.background = 'linear-gradient(135deg,#dc2626,#ef4444)'; }, 3000);
 }
 
 async function doPullAllIn() {
@@ -245,7 +245,7 @@ async function doPullAllIn() {
         }
     } catch (err) { display.innerHTML = '<div class="gacha-error"><p>❌ 网络错误</p></div>'; }
     document.getElementById('btnAllIn').disabled = false;
-    document.getElementById('btnAllIn').textContent = '🔴 梭哈 <br><small>全部代币单抽 · 保留个位</small>';
+    document.getElementById('btnAllIn').textContent = '🔴 梭哈 <br><small>最多 500 万 · 30 分钟冷却</small>';
     document.getElementById('btnAllIn').style.background = 'linear-gradient(135deg,#dc2626,#ef4444)';
 }
 </script>
