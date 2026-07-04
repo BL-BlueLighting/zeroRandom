@@ -8,7 +8,6 @@
 
 require_once __DIR__ . '/AdapterInterface.php';
 require_once __DIR__ . '/HustojAdapter.php';
-require_once __DIR__ . '/HydrojAdapter.php';
 
 class AdapterManager {
 
@@ -18,7 +17,6 @@ class AdapterManager {
     /** @var string[] Registered adapter class names */
     private static array $registry = [
         'hustoj' => HustojAdapter::class,
-        'hydroj' => HydrojAdapter::class,
     ];
 
     /**

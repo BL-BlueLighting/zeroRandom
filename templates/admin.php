@@ -28,32 +28,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message = '✅ HustOJ 配置已保存！(已禁用 HydroOJ)';
     }
 
-    // ── HydroOJ Config ──
-    if ($postAction === 'save_hydroj_config') {
-        $fields = ['oj_url', 'api_token', 'category_source'];
-        foreach ($fields as $f) {
-            platform_config_set('hydroj', $f, $_POST[$f] ?? '');
-        }
-        // Clear HustOJ config to prevent dual activation
-        platform_config_set('hustoj', 'db_host', '');
-        $message = '✅ HydroOJ 配置已保存！(已禁用 HustOJ)';
-    }
-
     // ── Sync Stocks ──
     if ($postAction === 'sync_stocks') {
-        $enabled = platform_configured('hustoj') ? 'hustoj' : (platform_configured('hydroj') ? 'hydroj' : null);
-        if ($enabled) {
-            $adapter = AdapterManager::get($enabled);
-            if ($adapter && $adapter->testConnection()) {
-                PoolEngine::syncLimitedEdition();
-                $result = $adapter->syncStocks();
-                $message = "✅ 同步完成！更新 {$result['items_synced']} 支股票。";
-            } else {
-                $errMsg = $adapter ? $adapter->getConfigError() : '未知错误';
-                $message = "❌ 无法连接 {$enabled}：{$errMsg}";
-            }
+        $adapter = AdapterManager::get('hustoj');
+        if ($adapter && $adapter->testConnection()) {
+            PoolEngine::syncLimitedEdition();
+            $result = $adapter->syncStocks();
+            $message = "✅ 同步完成！更新 {$result['items_synced']} 支股票。";
         } else {
-            $message = '❌ 未配置任何 OJ 平台。';
+            $err = $adapter ? $adapter->getConfigError() : '未知错误';
+            $message = "❌ 无法连接 HustOJ：{$err}";
         }
     }
 
@@ -113,8 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // ── Refresh Stock Prices ──
     if ($postAction === 'refresh_stocks') {
-        $activeAdapter = platform_configured('hustoj') ? 'hustoj' : (platform_configured('hydroj') ? 'hydroj' : null);
-        $adapter = $activeAdapter ? AdapterManager::get($activeAdapter) : null;
+        $adapter = AdapterManager::get('hustoj');
         if ($adapter && $adapter->testConnection()) {
             PoolEngine::syncLimitedEdition();
             $syncResult = $adapter->syncStocks();
@@ -320,28 +303,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Current data
 $currentWeights = GachaEngine::getRarityWeights();
-$activeAdapter = platform_configured('hustoj') ? 'hustoj' : (platform_configured('hydroj') ? 'hydroj' : null);
-$adapterNames = ['hustoj' => 'HustOJ', 'hydroj' => 'HydroOJ'];
-$adapterConfigs = [];
-foreach (['hustoj', 'hydroj'] as $a) {
-    $adapterConfigs[$a] = [
-        'configured' => platform_configured($a),
-        'connected' => false,
-        'config' => [
-            'db_host' => platform_config($a, 'db_host', ''),
-            'db_port' => platform_config($a, 'db_port', '3306'),
-            'db_name' => platform_config($a, 'db_name', $a === 'hustoj' ? 'jol' : 'hydro'),
-            'db_user' => platform_config($a, 'db_user', ''),
-            'db_pass' => platform_config($a, 'db_pass', ''),
-            'oj_url' => platform_config($a, 'oj_url', ''),
-            'category_source' => platform_config($a, 'category_source', ''),
-        ],
-    ];
-    if ($adapterConfigs[$a]['configured']) {
-        $inst = AdapterManager::get($a);
-        $adapterConfigs[$a]['connected'] = $inst && $inst->testConnection();
-    }
+$hustojConfigured = platform_configured('hustoj');
+$hustojConnected = false;
+if ($hustojConfigured) {
+    $adapter = AdapterManager::get('hustoj');
+    $hustojConnected = $adapter && $adapter->testConnection();
 }
+$hustojConfig = [
+    'db_host' => platform_config('hustoj', 'db_host', ''),
+    'db_port' => platform_config('hustoj', 'db_port', '3306'),
+    'db_name' => platform_config('hustoj', 'db_name', 'jol'),
+    'db_user' => platform_config('hustoj', 'db_user', ''),
+    'db_pass' => platform_config('hustoj', 'db_pass', ''),
+    'oj_url' => platform_config('hustoj', 'oj_url', ''),
+    'category_source' => platform_config('hustoj', 'category_source', ''),
+];
 
 $notifications = $db->query("SELECT * FROM notifications ORDER BY created_at DESC LIMIT 20")->fetchAll();
 $overrides = $db->query("
@@ -368,85 +344,63 @@ include __DIR__ . '/layout/header.php';
     <?php endif; ?>
 
     <div class="admin-grid">
-        <!-- Adapter Config: HustOJ + HydroOJ -->
+        <!-- HustOJ Config -->
         <section class="admin-section">
-            <h2>🔌 OJ 平台配置</h2>
-            <p class="text-muted">配置 OJ 数据库连接信息（HustOJ 与 HydroOJ 仅可启用一个）</p>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
-            <?php foreach (['hustoj' => 'HustOJ', 'hydroj' => 'HydroOJ'] as $aKey => $aName):
-                $cfg = $adapterConfigs[$aKey];
-                $isActive = $activeAdapter === $aKey;
-            ?>
-            <div style="background:var(--bg-secondary);border:1px solid <?= $isActive ? 'var(--accent)' : 'var(--border)' ?>;border-radius:var(--radius-lg);padding:16px">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-                    <h3 style="font-size:16px;margin:0"><?= $aName ?></h3>
-                    <?php if ($isActive): ?><span class="rarity-badge small legendary">当前启用</span><?php endif; ?>
-                </div>
-                <form method="POST" class="admin-form">
-                    <input type="hidden" name="action" value="save_<?= $aKey ?>_config">
-                    <?php if ($aKey === 'hustoj'): ?>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>MySQL 主机</label>
-                            <input name="db_host" value="<?= htmlspecialchars($cfg['config']['db_host']) ?>" placeholder="localhost" class="form-input" style="font-size:12px;padding:6px 8px">
-                        </div>
-                        <div class="form-group" style="max-width:80px">
-                            <label>端口</label>
-                            <input name="db_port" value="<?= htmlspecialchars($cfg['config']['db_port']) ?>" placeholder="3306" class="form-input" style="font-size:12px;padding:6px 8px">
-                        </div>
+            <h2>🔌 HustOJ 配置</h2>
+            <p class="text-muted">配置 HustOJ 数据库连接信息，同步题目数据作为股票</p>
+            <form method="POST" class="admin-form">
+                <input type="hidden" name="action" value="save_hustoj_config">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>MySQL 主机</label>
+                        <input name="db_host" value="<?= htmlspecialchars($hustojConfig['db_host']) ?>" placeholder="localhost" class="form-input">
                     </div>
-                    <div class="form-row">
-                        <div class="form-group" style="flex:1">
-                            <label>数据库名</label>
-                            <input name="db_name" value="<?= htmlspecialchars($cfg['config']['db_name']) ?>" placeholder="jol" class="form-input" style="font-size:12px;padding:6px 8px">
-                        </div>
-                        <div class="form-group" style="flex:1">
-                            <label>用户名</label>
-                            <input name="db_user" value="<?= htmlspecialchars($cfg['config']['db_user']) ?>" placeholder="root" class="form-input" style="font-size:12px;padding:6px 8px">
-                        </div>
+                    <div class="form-group">
+                        <label>端口</label>
+                        <input name="db_port" value="<?= htmlspecialchars($hustojConfig['db_port']) ?>" placeholder="3306" class="form-input" style="width:80px">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>数据库名</label>
+                        <input name="db_name" value="<?= htmlspecialchars($hustojConfig['db_name']) ?>" placeholder="jol" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>用户名</label>
+                        <input name="db_user" value="<?= htmlspecialchars($hustojConfig['db_user']) ?>" placeholder="root" class="form-input">
                     </div>
                     <div class="form-group">
                         <label>密码</label>
-                        <input name="db_pass" type="password" value="<?= htmlspecialchars($cfg['config']['db_pass']) ?>" placeholder="(留空为无密码)" class="form-input" style="font-size:12px;padding:6px 8px">
+                        <input name="db_pass" type="password" value="<?= htmlspecialchars($hustojConfig['db_pass']) ?>" placeholder="(留空为无密码)" class="form-input">
                     </div>
-                    <?php endif; ?>
-                    <div class="form-row">
-                        <div class="form-group" style="flex:2">
-                            <label>OJ 网站地址</label>
-                            <input name="oj_url" value="<?= htmlspecialchars($cfg['config']['oj_url']) ?>" placeholder="http://oj.example.com" class="form-input" style="font-size:12px;padding:6px 8px">
-                        </div>
-                        <div class="form-group" style="flex:1">
-                            <label><?= $aKey === 'hydroj' ? '域/API Token' : '题源分类' ?></label>
-                            <input name="<?= $aKey === 'hydroj' ? 'api_token' : 'category_source' ?>" value="<?= htmlspecialchars($aKey === 'hydroj' ? platform_config('hydroj', 'api_token', '') : $cfg['config']['category_source']) ?>" placeholder="<?= $aKey === 'hydroj' ? 'API Token (可选)' : '留空全部' ?>" class="form-input" style="font-size:12px;padding:6px 8px">
-                        </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>OJ 网站地址</label>
+                        <input name="oj_url" value="<?= htmlspecialchars($hustojConfig['oj_url']) ?>" placeholder="http://oj.example.com" class="form-input">
                     </div>
-                    <?php if ($aKey === 'hustoj'): ?>
                     <div class="form-group">
                         <label>题源分类 (可选)</label>
-                        <input name="category_source" value="<?= htmlspecialchars($cfg['config']['category_source']) ?>" placeholder="留空全部" class="form-input" style="font-size:12px;padding:6px 8px">
+                        <input name="category_source" value="<?= htmlspecialchars($hustojConfig['category_source']) ?>" placeholder="留空为全部题目" class="form-input">
                     </div>
+                </div>
+                <button class="btn btn-primary">💾 保存配置</button>
+            </form>
+
+            <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+                <span>状态:
+                    <?php if ($hustojConfigured && $hustojConnected): ?>
+                    <span class="text-green">✅ 已连接</span>
+                    <?php elseif ($hustojConfigured): ?>
+                    <span class="text-red">❌ 连接失败</span>
+                    <?php else: ?>
+                    <span class="text-muted">⚠️ 未配置</span>
                     <?php endif; ?>
-                    <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
-                        <button class="btn btn-sm btn-primary" style="font-size:12px">💾 启用并保存</button>
-                        <span style="font-size:12px">
-                            <?php if ($cfg['configured'] && $cfg['connected']): ?>
-                            <span class="text-green">✅ 已连接</span>
-                            <?php elseif ($cfg['configured']): ?>
-                            <span class="text-red">❌ 连接失败</span>
-                            <?php else: ?>
-                            <span class="text-muted">未配置</span>
-                            <?php endif; ?>
-                        </span>
-                    </div>
-                </form>
-            </div>
-            <?php endforeach; ?>
-            </div>
-            <div style="margin-top:12px">
+                </span>
                 <form method="POST" style="display:inline">
                     <input type="hidden" name="action" value="sync_stocks">
-                    <button class="btn btn-accent" <?= !$activeAdapter ? 'disabled' : '' ?>>
-                        🔄 同步当前启用的平台数据
+                    <button class="btn btn-accent" <?= !$hustojConnected ? 'disabled' : '' ?>>
+                        🔄 同步题目数据
                     </button>
                 </form>
             </div>

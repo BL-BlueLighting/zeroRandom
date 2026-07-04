@@ -15,8 +15,7 @@ if (empty($ojUserId)) {
 }
 
 try {
-    $activeAdapter = platform_configured('hustoj') ? 'hustoj' : (platform_configured('hydroj') ? 'hydroj' : null);
-    $adapter = $activeAdapter ? AdapterManager::get($activeAdapter) : null;
+        $adapter = AdapterManager::get('hustoj');
     if (!$adapter || !$adapter->testConnection()) {
         echo json_encode(['success' => false, 'message' => '无法连接到 OJ 数据库。']);
         exit;

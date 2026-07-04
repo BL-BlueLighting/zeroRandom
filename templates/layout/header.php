@@ -34,7 +34,7 @@ $currentUri = $_SERVER['REQUEST_URI'] ?? '/';
             <?php if (Session::isLoggedIn()): ?>
             <a href="<?= url('/checkin.php') ?>" class="nav-link <?= strpos($currentUri, '/checkin.php') === 0 ? 'active' : '' ?>">签到</a>
             <?php endif; ?>
-            <?php if ((platform_configured('hustoj') || platform_configured('hydroj')) && Session::isLoggedIn()): ?>
+            <?php if (platform_configured('hustoj') && Session::isLoggedIn()): ?>
             <a href="<?= url('/bind.php') ?>" class="nav-link <?= strpos($currentUri, '/bind.php') === 0 ? 'active' : '' ?>">绑定OJ</a>
             <?php endif; ?>
             <?php if ($currentUser && ($currentUser['is_admin'] ?? 0) == 1): ?>

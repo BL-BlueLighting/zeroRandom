@@ -39,8 +39,7 @@ $db->prepare("UPDATE bind_verifications SET verified = 1 WHERE id = ?")
     ->execute([$verification['id']]);
 
 try {
-    $activeAdapter = platform_configured('hustoj') ? 'hustoj' : (platform_configured('hydroj') ? 'hydroj' : null);
-    $adapter = $activeAdapter ? AdapterManager::get($activeAdapter) : null;
+        $adapter = AdapterManager::get('hustoj');
     $userData = $adapter ? $adapter->fetchUserData($verification['oj_user_id']) : null;
 
     if (!$userData) {
