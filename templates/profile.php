@@ -60,5 +60,34 @@
         <p class="text-muted">暂未获得成就</p>
         <?php endif; ?>
     </section>
+
+    <!-- Contact Info -->
+    <?php
+    $contactQQ = platform_config('system', 'contact_qq', '');
+    $contactQQQR = platform_config('system', 'contact_qq_qr', '');
+    $contactWXQR = platform_config('system', 'contact_wx_qr', '');
+    if ($contactQQ || $contactQQQR || $contactWXQR):
+    ?>
+    <section class="section">
+        <h2 class="section-title">💬 加入我们</h2>
+        <div style="display:flex;gap:20px;flex-wrap:wrap">
+            <?php if ($contactQQ): ?>
+            <div class="detail-stat" style="flex:1;min-width:180px">
+                <div class="ds-label">🐧 QQ 群</div>
+                <div class="ds-value" style="font-size:20px"><?= htmlspecialchars($contactQQ) ?></div>
+                <?php if ($contactQQQR): ?>
+                <img src="<?= htmlspecialchars($contactQQQR) ?>" alt="QQ群二维码" style="max-width:180px;margin-top:8px;border-radius:8px">
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
+            <?php if ($contactWXQR): ?>
+            <div class="detail-stat" style="flex:1;min-width:180px">
+                <div class="ds-label">💚 微信</div>
+                <img src="<?= htmlspecialchars($contactWXQR) ?>" alt="微信二维码" style="max-width:180px;margin-top:8px;border-radius:8px">
+            </div>
+            <?php endif; ?>
+        </div>
+    </section>
+    <?php endif; ?>
 </div>
 <?php include __DIR__ . '/layout/footer.php'; ?>
