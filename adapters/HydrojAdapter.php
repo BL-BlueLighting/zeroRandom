@@ -30,25 +30,52 @@ class HydrojAdapter implements AdapterInterface {
     }
 
     /**
-     * HTTP GET request to HydroOJ API.
+     * HTTP(S) request to HydroOJ API. Falls back to cURL if file_get_contents fails.
      */
     private function apiGet(string $path): ?array {
         $c = $this->getConfig();
         $url = $c['oj_url'] . $path;
-        $ctx = stream_context_create([
-            'http' => [
-                'timeout' => 10,
-                'header' => "Accept: application/json\r\n" . ($c['api_token'] ? "Authorization: Bearer {$c['api_token']}\r\n" : ''),
-                'ignore_errors' => true,
-            ],
-        ]);
-        $result = @file_get_contents($url, false, $ctx);
+        $headers = ["Accept: application/json"];
+        if ($c['api_token']) $headers[] = "Authorization: Bearer {$c['api_token']}";
+
+        $result = false;
+        // Try file_get_contents first
+        if (ini_get('allow_url_fopen')) {
+            $ctx = stream_context_create([
+                'http' => ['timeout' => 10, 'header' => implode("\r\n", $headers) . "\r\n", 'ignore_errors' => true],
+                'ssl' => ['verify_peer' => false, 'verify_peer_name' => false],
+            ]);
+            $result = @file_get_contents($url, false, $ctx);
+        }
+        // Fallback to cURL
+        if ($result === false && function_exists('curl_init')) {
+            $ch = curl_init();
+            curl_setopt_array($ch, [
+                CURLOPT_URL => $url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 10,
+                CURLOPT_HTTPHEADER => $headers,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_SSL_VERIFYHOST => 0,
+            ]);
+            $result = curl_exec($ch);
+            $err = curl_error($ch);
+            curl_close($ch);
+            if ($result === false) {
+                $this->configError = "HydroOJ API cURL 错误: {$err} ({$url})";
+                return null;
+            }
+        }
         if ($result === false) {
-            $this->configError = "HydroOJ API 请求失败: {$url}";
+            $this->configError = "HydroOJ API 请求失败 (allow_url_fopen=Off, 无 cURL): {$url}";
             return null;
         }
         $data = json_decode($result, true);
-        return is_array($data) ? $data : null;
+        if (!is_array($data)) {
+            $this->configError = "HydroOJ API 返回非 JSON: " . substr($result, 0, 200);
+            return null;
+        }
+        return $data;
     }
 
     /**

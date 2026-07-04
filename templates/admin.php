@@ -49,7 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $result = $adapter->syncStocks();
                 $message = "✅ 同步完成！更新 {$result['items_synced']} 支股票。";
             } else {
-                $message = "❌ 无法连接 {$enabled}，请检查配置。";
+                $errMsg = $adapter ? $adapter->getConfigError() : '未知错误';
+                $message = "❌ 无法连接 {$enabled}：{$errMsg}";
             }
         } else {
             $message = '❌ 未配置任何 OJ 平台。';
