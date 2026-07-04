@@ -76,14 +76,14 @@
                 <div class="ds-label">🐧 QQ 群</div>
                 <div class="ds-value" style="font-size:20px"><?= htmlspecialchars($contactQQ) ?></div>
                 <?php if ($contactQQQR): ?>
-                <img src="<?= htmlspecialchars($contactQQQR) ?>" alt="QQ群二维码" style="max-width:180px;margin-top:8px;border-radius:8px">
+                <img src="<?= url('/' . $contactQQQR) ?>" alt="QQ群二维码" style="max-width:180px;margin-top:8px;border-radius:8px">
                 <?php endif; ?>
             </div>
             <?php endif; ?>
             <?php if ($contactWXQR): ?>
             <div class="detail-stat" style="flex:1;min-width:180px">
                 <div class="ds-label">💚 微信</div>
-                <img src="<?= htmlspecialchars($contactWXQR) ?>" alt="微信二维码" style="max-width:180px;margin-top:8px;border-radius:8px">
+                <img src="<?= url('/' . $contactWXQR) ?>" alt="微信二维码" style="max-width:180px;margin-top:8px;border-radius:8px">
             </div>
             <?php endif; ?>
         </div>

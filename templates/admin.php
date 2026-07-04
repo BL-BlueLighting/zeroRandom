@@ -71,8 +71,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // ── Contact Config ──
     if ($postAction === 'save_contact_config') {
-        foreach (['contact_qq', 'contact_qq_qr', 'contact_wx_qr'] as $f) {
-            platform_config_set('system', $f, $_POST[$f] ?? '');
+        platform_config_set('system', 'contact_qq', $_POST['contact_qq'] ?? '');
+
+        $rootDir = __DIR__ . '/..';
+        $uploadDir = $rootDir . '/uploads';
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+
+        foreach (['contact_qq_qr', 'contact_wx_qr'] as $field) {
+            $remove = !empty($_POST['remove_' . $field]);
+            $oldPath = platform_config('system', $field, '');
+
+            if ($remove && $oldPath) {
+                $oldFile = $rootDir . '/' . $oldPath;
+                if (file_exists($oldFile)) unlink($oldFile);
+                platform_config_set('system', $field, '');
+            }
+
+            if (!empty($_FILES[$field]) && $_FILES[$field]['error'] === UPLOAD_ERR_OK) {
+                if (!$remove && $oldPath) {
+                    $oldFile = $rootDir . '/' . $oldPath;
+                    if (file_exists($oldFile)) unlink($oldFile);
+                }
+                $ext = strtolower(pathinfo($_FILES[$field]['name'], PATHINFO_EXTENSION));
+                $name = $field . '_' . time() . '.' . $ext;
+                $dest = $uploadDir . '/' . $name;
+                if (move_uploaded_file($_FILES[$field]['tmp_name'], $dest)) {
+                    platform_config_set('system', $field, 'uploads/' . $name);
+                }
+            }
         }
         $message = '✅ 联系方式已保存！';
     }
@@ -624,21 +650,27 @@ include __DIR__ . '/layout/header.php';
         <section class="admin-section">
             <h2>💬 联系方式配置</h2>
             <p class="text-muted">配置后会在用户个人中心页面展示</p>
-            <form method="POST" class="admin-form">
+            <form method="POST" class="admin-form" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="save_contact_config">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>QQ 群号码</label>
-                        <input type="text" name="contact_qq" value="<?= htmlspecialchars(platform_config('system', 'contact_qq', '')) ?>" class="form-input" placeholder="如 123456789">
-                    </div>
-                    <div class="form-group" style="flex:2">
-                        <label>QQ 群二维码图片 URL</label>
-                        <input type="text" name="contact_qq_qr" value="<?= htmlspecialchars(platform_config('system', 'contact_qq_qr', '')) ?>" class="form-input" placeholder="https://example.com/qq_qr.png">
-                    </div>
-                </div>
                 <div class="form-group">
-                    <label>微信二维码图片 URL</label>
-                    <input type="text" name="contact_wx_qr" value="<?= htmlspecialchars(platform_config('system', 'contact_wx_qr', '')) ?>" class="form-input" placeholder="https://example.com/wx_qr.png">
+                    <label>QQ 群号码</label>
+                    <input type="text" name="contact_qq" value="<?= htmlspecialchars(platform_config('system', 'contact_qq', '')) ?>" class="form-input" placeholder="如 123456789">
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1">
+                        <label>QQ 群二维码</label>
+                        <input type="file" name="contact_qq_qr" accept="image/*" class="form-input" style="padding:6px">
+                        <?php $qqQr = platform_config('system', 'contact_qq_qr', ''); if ($qqQr): ?>
+                        <div style="margin-top:4px"><img src="<?= url("/" . $qqQr) ?>" style="max-height:80px;border-radius:4px"> <label style="font-size:12px;color:var(--text-muted)"><input type="checkbox" name="remove_qq_qr" value="1"> 删除</label></div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="form-group" style="flex:1">
+                        <label>微信二维码</label>
+                        <input type="file" name="contact_wx_qr" accept="image/*" class="form-input" style="padding:6px">
+                        <?php $wxQr = platform_config('system', 'contact_wx_qr', ''); if ($wxQr): ?>
+                        <div style="margin-top:4px"><img src="<?= url("/" . $wxQr) ?>" style="max-height:80px;border-radius:4px"> <label style="font-size:12px;color:var(--text-muted)"><input type="checkbox" name="remove_wx_qr" value="1"> 删除</label></div>
+                        <?php endif; ?>
+                    </div>
                 </div>
                 <button class="btn btn-primary">💾 保存</button>
             </form>
