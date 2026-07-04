@@ -86,15 +86,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $db->exec("UPDATE stocks SET category = '{$value}' WHERE {$where}");
                     $message = "✅ 已将 {$prefix}* 开头的股票分类设为 {$value}";
                     break;
-                case 'price_pct':
-                    $pct = (float)$value;
-                    $db->exec("UPDATE stocks SET prev_price = current_price, current_price = ROUND(current_price * (1 + {$pct} / 100), 2), price_change_pct = {$pct} WHERE {$where}");
-                    $message = "✅ 已将 {$prefix}* 开头的股票价格调整 {$pct}%";
+                case 'price':
+                    $price = (float)$value;
+                    $db->exec("UPDATE stocks SET prev_price = current_price, current_price = {$price}, price_change_pct = ROUND(({$price} - current_price) / current_price * 100, 2) WHERE {$where}");
+                    $message = "✅ 已将 {$prefix}* 开头的股票价格设为 {$price}";
                     break;
                 case 'limited':
                     $set = $value === '1' ? '1' : '0';
-                    $db->exec("UPDATE stocks SET limited_edition = {$set} WHERE {$where}");
-                    $message = "✅ 已将 {$prefix}* 开头的股票绝版状态设为 {$set}";
+                    if ($set === '1') {
+                        $db->exec("UPDATE stocks SET limited_edition = 1, rarity = 'legendary' WHERE {$where}");
+                    } else {
+                        $db->exec("UPDATE stocks SET limited_edition = 0 WHERE {$where}");
+                    }
+                    $message = "✅ 已将 {$prefix}* 开头的股票绝版状态设为 " . ($set === '1' ? '绝版' : '非绝版');
                     break;
                 default:
                     $message = '❌ 无效操作。';
@@ -630,13 +634,13 @@ include __DIR__ . '/layout/header.php';
                         <select name="bulk_action" class="form-input" style="width:140px">
                             <option value="rarity">设置稀有度</option>
                             <option value="category">设置分类</option>
-                            <option value="price_pct">调整价格 (%)</option>
+                            <option value="price">设置价格</option>
                             <option value="limited">设置绝版状态</option>
                         </select>
                     </div>
                     <div class="form-group" style="flex:1">
                         <label>值</label>
-                        <input type="text" name="bulk_value" required class="form-input" placeholder="稀有度: common/rare/epic/legendary | 价格: 正数涨负数跌 | 绝版: 1或0">
+                        <input type="text" name="bulk_value" required class="form-input" placeholder="稀有度: common/rare/epic/legendary | 价格: 数字 | 绝版: 1或0">
                     </div>
                     <button class="btn btn-primary" style="align-self:flex-end">⚡ 执行</button>
                 </div>
