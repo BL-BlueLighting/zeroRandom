@@ -4,6 +4,18 @@
  * Include this AFTER config.php and Database.php in entry point files.
  */
 require_once __DIR__ . '/helpers.php';
+
+// Load user's number format preference into session
+if (isset($_SESSION['user_id']) && !isset($_SESSION['number_style'])) {
+    try {
+        $__db = Database::getInstance();
+        $__stmt = $__db->prepare("SELECT number_style FROM users WHERE id = ?");
+        $__stmt->execute([$_SESSION['user_id']]);
+        $__ns = $__stmt->fetchColumn();
+        $_SESSION['number_style'] = $__ns ?: 'wan';
+    } catch (Exception $e) { $_SESSION['number_style'] = 'wan'; }
+}
+
 $__dataDir = dirname(defined('DB_PATH') ? DB_PATH : __DIR__ . '/data/oimanka.db');
 if (!is_writable(dirname($__dataDir)) && !is_writable($__dataDir)) {
     http_response_code(500);

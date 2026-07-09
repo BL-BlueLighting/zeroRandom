@@ -343,6 +343,7 @@ class Database {
             "ALTER TABLE notifications ADD COLUMN reward_stock_id INTEGER DEFAULT 0",
             "ALTER TABLE notifications ADD COLUMN reward_stock_quantity INTEGER DEFAULT 0",
             "ALTER TABLE users ADD COLUMN last_active_at DATETIME",
+            "ALTER TABLE users ADD COLUMN number_style TEXT DEFAULT 'wan'",
         ];
         foreach ($columnMigrations as $sql) {
             try {

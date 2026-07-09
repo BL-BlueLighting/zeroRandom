@@ -18,6 +18,20 @@ AutoJob::run();
 
 $profileUserId = (int)($_GET['id'] ?? Session::userId());
 if ($profileUserId <= 0) $profileUserId = Session::userId();
+$isOwner = Session::isLoggedIn() && $profileUserId === Session::userId();
+
+// Handle number_style save
+if ($isOwner && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'set_number_style') {
+    $style = $_POST['number_style'] ?? 'wan';
+    if (in_array($style, ['wan', '4digit', '3digit'])) {
+        $db = Database::getInstance();
+        $db->prepare("UPDATE users SET number_style = ? WHERE id = ?")->execute([$style, $profileUserId]);
+        $_SESSION['number_style'] = $style;
+        Session::flash('success', '数字格式已更新。');
+    }
+    header('Location: ' . url('/profile.php'));
+    exit;
+}
 
 $db = Database::getInstance();
 $stmt = $db->prepare("SELECT * FROM users WHERE id = ?");

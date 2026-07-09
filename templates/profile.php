@@ -61,6 +61,26 @@
         <?php endif; ?>
     </section>
 
+    <!-- Settings (own profile only) -->
+    <?php if ($isOwner): ?>
+    <section class="section">
+        <h2 class="section-title">⚙️ 显示设置</h2>
+        <form method="POST" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+            <input type="hidden" name="action" value="set_number_style">
+            <span class="text-muted" style="font-size:13px">数字格式：</span>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;padding:4px 10px;border-radius:6px;background:var(--bg-secondary);border:1px solid var(--border)">
+                <input type="radio" name="number_style" value="wan" <?= ($_SESSION['number_style'] ?? 'wan') === 'wan' ? 'checked' : '' ?> onchange="this.form.submit()"> 万/亿
+            </label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;padding:4px 10px;border-radius:6px;background:var(--bg-secondary);border:1px solid var(--border)">
+                <input type="radio" name="number_style" value="4digit" <?= ($_SESSION['number_style'] ?? '') === '4digit' ? 'checked' : '' ?> onchange="this.form.submit()"> 4位分节
+            </label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;padding:4px 10px;border-radius:6px;background:var(--bg-secondary);border:1px solid var(--border)">
+                <input type="radio" name="number_style" value="3digit" <?= ($_SESSION['number_style'] ?? '') === '3digit' ? 'checked' : '' ?> onchange="this.form.submit()"> 3位分节
+            </label>
+        </form>
+    </section>
+    <?php endif; ?>
+
     <!-- Contact Info -->
     <?php
     $contactQQ = platform_config('system', 'contact_qq', '');
