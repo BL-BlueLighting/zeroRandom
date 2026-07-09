@@ -4,6 +4,12 @@
  * Loaded automatically via init_check.php after config.php.
  */
 
+// Kaleidoscope constants (also in config.php, duplicated here since config.php is excluded from deploy)
+if (!defined('KALEIDOSCOPE_NAME')) define('KALEIDOSCOPE_NAME', 'zeroRandom The Kaleidoscope');
+if (!defined('KALEIDOSCOPE_ENTRY_FEE')) define('KALEIDOSCOPE_ENTRY_FEE', 1000000000000);
+if (!defined('KALEIDOSCOPE_CONVERT_RATE')) define('KALEIDOSCOPE_CONVERT_RATE', 100000000);
+if (!defined('KALEIDOSCOPE_DURATION')) define('KALEIDOSCOPE_DURATION', 24);
+
 /**
  * Check if current session is in Kaleidoscope (天·界) layer.
  */
@@ -18,7 +24,8 @@ if (!function_exists('nf')) {
      * Format numbers based on user's preferred style.
      * Styles: 'wan' (万/亿), '4digit' (1,2345), '3digit' (1,234)
      */
-    function nf(float $num, int $decimals = 2): string {
+    function nf($num, int $decimals = 2): string {
+        $num = (float)$num;
         $style = $_SESSION['number_style'] ?? 'wan';
 
         if ($style === '3digit') {

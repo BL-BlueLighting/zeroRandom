@@ -109,11 +109,7 @@ function oj_url(): string {
 }
 define('OJ_URL_FN', true); // signal that oj_url() is available
 
-// Kaleidoscope (天·界) layer
-define('KALEIDOSCOPE_NAME', 'zeroRandom The Kaleidoscope');
-define('KALEIDOSCOPE_ENTRY_FEE', 1000000000000);
-define('KALEIDOSCOPE_CONVERT_RATE', 100000000);
-define('KALEIDOSCOPE_DURATION', 24); // hours
+// Kaleidoscope (天·界) layer — also defined in helpers.php for deployed server
 
 /**
  * Get the base path for URL generation.
