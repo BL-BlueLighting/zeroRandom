@@ -658,6 +658,9 @@ include __DIR__ . '/layout/header.php';
             <h2>🎯 卡池管理</h2>
             <p class="text-muted">管理卡池、选择题目、分割卡池</p>
             <a href="<?= url('/pool_manager.php') ?>" class="btn btn-primary">🎯 打开卡池管理</a>
+            <div style="margin-top:8px">
+                <a href="<?= url('/user_manager.php') ?>" class="btn btn-outline">👥 用户管理</a>
+            </div>
         </section>
 
         <!-- Quest Config -->
