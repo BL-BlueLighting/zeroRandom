@@ -5,26 +5,6 @@
 /* ── Reset & Base ── */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-[data-layer="kaleidoscope"] {
-    --bg-primary: #f5f0eb;
-    --bg-secondary: #ede8e2;
-    --bg-card: #ffffff;
-    --bg-hover: #f0ece6;
-    --border: #d4cfc9;
-    --border-light: #c8c3bd;
-    --text-primary: #1a1a2e;
-    --text-secondary: #5a5a6a;
-    --text-muted: #9a9aaa;
-    --accent: #4da6ff;
-    --accent-hover: #3399ff;
-    --accent-gold: #d4a017;
-    --green: #2e8b57;
-    --red: #c0392b;
-    --green-bg: #e8f5e9;
-    --red-bg: #fbe9e7;
-    --shadow: 0 2px 12px rgba(0,0,0,0.08);
-}
-
 :root {
     --bg-primary: #0d0d0d;
     --bg-secondary: #141414;
@@ -56,6 +36,27 @@
     --radius-lg: 12px;
     --shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
     --transition: 0.2s ease;
+}
+
+/* Kaleidoscope (天·界) white theme */
+html[data-layer="kaleidoscope"] {
+    --bg-primary: #f5f0eb;
+    --bg-secondary: #ede8e2;
+    --bg-card: #ffffff;
+    --bg-hover: #f0ece6;
+    --border: #d4cfc9;
+    --border-light: #c8c3bd;
+    --text-primary: #1a1a2e;
+    --text-secondary: #5a5a6a;
+    --text-muted: #9a9aaa;
+    --accent: #4da6ff;
+    --accent-hover: #3399ff;
+    --accent-gold: #d4a017;
+    --green: #2e8b57;
+    --red: #c0392b;
+    --green-bg: #e8f5e9;
+    --red-bg: #fbe9e7;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
 }
 
 html { font-size: 15px; }
@@ -115,6 +116,10 @@ img { max-width: 100%; }
     max-width: 1500px; margin: 0 auto; padding: 0 16px;
     display: flex; align-items: center; height: 56px; gap: 12px;
 }
+html[data-layer="kaleidoscope"] .site-logo { font-size: 15px; gap: 4px; }
+html[data-layer="kaleidoscope"] .nav-link { padding: 4px 6px; font-size: 12px; }
+html[data-layer="kaleidoscope"] .header-inner { gap: 6px; padding: 0 10px; }
+
 .site-logo {
     display: flex; align-items: center; gap: 8px;
     font-weight: 700; font-size: 18px; color: var(--text-primary);
