@@ -5,9 +5,9 @@
     </div>
 
     <div class="detail-stats-grid">
-        <div class="detail-stat"><div class="ds-label">净资产</div><div class="ds-value">🪙 <?= number_format($stats['net_worth'] ?? 0, 1) ?></div></div>
-        <div class="detail-stat"><div class="ds-label">代币余额</div><div class="ds-value">🪙 <?= number_format($stats['token_balance'] ?? 0, 1) ?></div></div>
-        <div class="detail-stat"><div class="ds-label">持仓市值</div><div class="ds-value">🪙 <?= number_format($summary['total_value'] ?? 0, 1) ?></div></div>
+        <div class="detail-stat"><div class="ds-label">净资产</div><div class="ds-value">🪙 <?= nf($stats['net_worth'] ?? 0, 1) ?></div></div>
+        <div class="detail-stat"><div class="ds-label">代币余额</div><div class="ds-value">🪙 <?= nf($stats['token_balance'] ?? 0, 1) ?></div></div>
+        <div class="detail-stat"><div class="ds-label">持仓市值</div><div class="ds-value">🪙 <?= nf($summary['total_value'] ?? 0, 1) ?></div></div>
         <div class="detail-stat"><div class="ds-label">累计签到</div><div class="ds-value">📅 <?= $checkinStats['total'] ?>天</div></div>
         <div class="detail-stat"><div class="ds-label">抽卡次数</div><div class="ds-value">🎲 <?= $gachaStats['total_pulls'] ?? 0 ?></div></div>
         <div class="detail-stat"><div class="ds-label">持有股票</div><div class="ds-value">📈 <?= $summary['total_stocks'] ?? 0 ?></div></div>
@@ -28,7 +28,7 @@
                     <span class="stock-name"><?= htmlspecialchars($c['stock_name']) ?></span>
                 </div>
                 <div class="stock-mini-meta">
-                    <span class="stock-price">🪙 <?= number_format($c['market_value'], 2) ?></span>
+                    <span class="stock-price">🪙 <?= nf($c['market_value'], 2) ?></span>
                     <span>x<?= $c['quantity'] ?></span>
                 </div>
             </a>

@@ -12,9 +12,9 @@
         <tr>
             <td>#<?= $u['id'] ?></td>
             <td><strong><?= htmlspecialchars($u['username']) ?></strong><?= $u['is_admin'] ? ' <span class="rarity-badge small legendary">管理员</span>' : '' ?></td>
-            <td>🪙 <?= number_format($u['token_balance'], 1) ?></td>
-            <td>🪙 <?= number_format($u['total_earned'], 1) ?></td>
-            <td>🪙 <?= number_format($u['total_spent'], 1) ?></td>
+            <td>🪙 <?= nf($u['token_balance'], 1) ?></td>
+            <td>🪙 <?= nf($u['total_earned'], 1) ?></td>
+            <td>🪙 <?= nf($u['total_spent'], 1) ?></td>
             <td>
                 <a href="<?= url('/user_edit.php') ?>?id=<?= $u['id'] ?>" class="btn btn-xs btn-primary">管理</a>
                 <a href="<?= url('/profile.php') ?>?id=<?= $u['id'] ?>" class="btn btn-xs btn-outline">查看主页</a>

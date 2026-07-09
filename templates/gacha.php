@@ -19,7 +19,7 @@ include __DIR__ . '/layout/header.php';
             $pityNext = GACHA_LEGENDARY_PITY_100 - (($hundredPulls % GACHA_LEGENDARY_PITY_100));
             if ($pityNext === GACHA_LEGENDARY_PITY_100) $pityNext = 0;
         ?>
-        <span class="token-display large">🪙 <?= number_format($balance, 1) ?></span>
+        <span class="token-display large">🪙 <?= nf($balance, 1) ?></span>
         <?php endif; ?>
     </div>
 

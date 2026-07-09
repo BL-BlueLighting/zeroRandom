@@ -63,12 +63,12 @@ include __DIR__ . '/layout/header.php';
                     <span>×<?= $tx['quantity'] ?></span>
                     <?php endif; ?>
                     <?php if ($tx['price']): ?>
-                    <span>@🪙 <?= number_format($tx['price'], 2) ?></span>
+                    <span>@🪙 <?= nf($tx['price'], 2) ?></span>
                     <?php endif; ?>
                 </div>
             </div>
             <div class="tx-amount <?= $tx['total_amount'] >= 0 ? 'text-green' : 'text-red' ?>">
-                <?= $tx['total_amount'] >= 0 ? '+' : '' ?><?= number_format($tx['total_amount'], 2) ?>
+                <?= $tx['total_amount'] >= 0 ? '+' : '' ?><?= nf($tx['total_amount'], 2) ?>
                 <?php if ($tx['fee'] > 0): ?>
                 <small class="text-muted">(手续费: <?= $tx['fee'] ?>)</small>
                 <?php endif; ?>

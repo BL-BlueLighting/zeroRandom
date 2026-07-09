@@ -46,7 +46,7 @@ include __DIR__ . '/layout/header.php';
             </div>
             <div class="stat-card">
                 <div class="stat-label">总市值</div>
-                <div class="stat-value">🪙 <?= number_format($summary['total_market_cap'], 0) ?></div>
+                <div class="stat-value">🪙 <?= nf($summary['total_market_cap'], 0) ?></div>
             </div>
             <div class="stat-card">
                 <div class="stat-label">平均涨跌</div>
@@ -79,7 +79,7 @@ include __DIR__ . '/layout/header.php';
                         <span class="stock-name"><?= htmlspecialchars($s['name']) ?></span>
                     </div>
                     <div class="stock-mini-meta">
-                        <span class="stock-price">🪙 <?= number_format($s['current_price'], 2) ?></span>
+                        <span class="stock-price">🪙 <?= nf($s['current_price'], 2) ?></span>
                         <span class="price-change text-green">+<?= $s['price_change_pct'] ?>%</span>
                     </div>
                 </a>
@@ -101,7 +101,7 @@ include __DIR__ . '/layout/header.php';
                         <span class="stock-name"><?= htmlspecialchars($s['name']) ?></span>
                     </div>
                     <div class="stock-mini-meta">
-                        <span class="stock-price">🪙 <?= number_format($s['current_price'], 2) ?></span>
+                        <span class="stock-price">🪙 <?= nf($s['current_price'], 2) ?></span>
                         <span class="price-change text-red"><?= $s['price_change_pct'] ?>%</span>
                     </div>
                 </a>
@@ -126,8 +126,8 @@ include __DIR__ . '/layout/header.php';
                 </div>
                 <div class="stock-mini-meta">
                     <span class="stock-cat"><?= htmlspecialchars($s['category']) ?></span>
-                    <span class="stock-price">🪙 <?= number_format($s['current_price'], 2) ?></span>
-                    <span class="stock-cap">市值: <?= number_format($s['market_cap'], 0) ?></span>
+                    <span class="stock-price">🪙 <?= nf($s['current_price'], 2) ?></span>
+                    <span class="stock-cap">市值: <?= nf($s['market_cap'], 0) ?></span>
                 </div>
             </a>
             <?php endforeach; ?>

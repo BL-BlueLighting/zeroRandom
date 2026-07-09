@@ -77,28 +77,28 @@ include __DIR__ . '/layout/header.php';
 <div class="page-portfolio">
     <div class="page-header">
         <h1>📦 我的持仓</h1>
-        <span class="token-display large">🪙 <?= number_format($stats['token_balance'] ?? 0, 1) ?></span>
+        <span class="token-display large">🪙 <?= nf($stats['token_balance'] ?? 0, 1) ?></span>
     </div>
 
     <!-- Portfolio Stats -->
     <div class="portfolio-stats">
         <div class="pstat-card">
             <div class="pstat-label">总资产</div>
-            <div class="pstat-value">🪙 <?= number_format($stats['net_worth'] ?? 0, 2) ?></div>
+            <div class="pstat-value">🪙 <?= nf($stats['net_worth'] ?? 0, 2) ?></div>
             <div class="pstat-sub">代币 + 持仓市值</div>
         </div>
         <div class="pstat-card">
             <div class="pstat-label">持仓市值</div>
-            <div class="pstat-value">🪙 <?= number_format($summary['total_value'] ?? 0, 2) ?></div>
+            <div class="pstat-value">🪙 <?= nf($summary['total_value'] ?? 0, 2) ?></div>
         </div>
         <div class="pstat-card">
             <div class="pstat-label">总盈亏</div>
             <div class="pstat-value <?= ($summary['total_pl'] ?? 0) >= 0 ? 'text-green' : 'text-red' ?>">
-                <?= ($summary['total_pl'] ?? 0) >= 0 ? '+' : '' ?><?= number_format($summary['total_pl'] ?? 0, 2) ?>
+                <?= ($summary['total_pl'] ?? 0) >= 0 ? '+' : '' ?><?= nf($summary['total_pl'] ?? 0, 2) ?>
             </div>
             <?php $withdrawable = max(0, $summary['total_pl'] ?? 0); if ($withdrawable > 0): ?>
             <div class="pstat-sub">
-                <form method="POST" action="<?= url('/portfolio_withdraw.php') ?>" style="display:inline" onsubmit="return confirm('确定提现 <?= number_format($withdrawable, 2) ?> 枚代币？提现后持仓均价将重置为当前价。')">
+                <form method="POST" action="<?= url('/portfolio_withdraw.php') ?>" style="display:inline" onsubmit="return confirm('确定提现 <?= nf($withdrawable, 2) ?> 枚代币？提现后持仓均价将重置为当前价。')">
                     <button class="btn btn-xs btn-primary" style="margin-top:4px;font-size:12px;padding:2px 10px">💰 提现盈利</button>
                 </form>
             </div>
@@ -106,7 +106,7 @@ include __DIR__ . '/layout/header.php';
         </div>
         <div class="pstat-card">
             <div class="pstat-label">每日预估收益</div>
-            <div class="pstat-value text-green">🪙 +<?= number_format($dailyEarnings, 2) ?></div>
+            <div class="pstat-value text-green">🪙 +<?= nf($dailyEarnings, 2) ?></div>
             <div class="pstat-sub">来自 <?= count($placedCards) ?> 张放置卡牌</div>
         </div>
     </div>
@@ -126,7 +126,7 @@ include __DIR__ . '/layout/header.php';
                     <span class="rarity-badge <?= !empty($placed['limited_edition']) ? 'limited' : $placed['rarity'] ?>"><?= !empty($placed['limited_edition']) ? '绝版' : (GachaEngine::RARITY_NAMES[$placed['rarity']] ?? $placed['rarity']) ?></span>
                     <div class="ps-symbol"><?= htmlspecialchars($placed['symbol']) ?></div>
                     <div class="ps-name"><?= htmlspecialchars($placed['stock_name']) ?></div>
-                    <div class="ps-price">🪙 <?= number_format($placed['current_price'], 2) ?></div>
+                    <div class="ps-price">🪙 <?= nf($placed['current_price'], 2) ?></div>
                     <div class="ps-change <?= $placed['price_change_pct'] >= 0 ? 'text-green' : 'text-red' ?>">
                         <?= $placed['price_change_pct'] >= 0 ? '+' : '' ?><?= $placed['price_change_pct'] ?>%
                     </div>
@@ -186,11 +186,11 @@ include __DIR__ . '/layout/header.php';
                         <td><a href="<?= url('/market_detail.php') ?>?id=<?= $h['stock_id'] ?>"><?= htmlspecialchars($h['stock_name']) ?></a></td>
                         <td><span class="rarity-badge <?= !empty($h['limited_edition']) ? 'limited' : $h['rarity'] ?>"><?= !empty($h['limited_edition']) ? '绝版' : (GachaEngine::RARITY_NAMES[$h['rarity']] ?? $h['rarity']) ?></span></td>
                         <td class="td-qty"><?= $h['quantity'] ?></td>
-                        <td>🪙 <?= number_format($h['avg_cost'], 2) ?></td>
-                        <td>🪙 <?= number_format($h['current_price'], 2) ?></td>
-                        <td>🪙 <?= number_format($h['market_value'], 2) ?></td>
+                        <td>🪙 <?= nf($h['avg_cost'], 2) ?></td>
+                        <td>🪙 <?= nf($h['current_price'], 2) ?></td>
+                        <td>🪙 <?= nf($h['market_value'], 2) ?></td>
                         <td class="<?= $h['profit_loss'] >= 0 ? 'text-green' : 'text-red' ?>">
-                            <?= $h['profit_loss'] >= 0 ? '+' : '' ?><?= number_format($h['profit_loss'], 2) ?>
+                            <?= $h['profit_loss'] >= 0 ? '+' : '' ?><?= nf($h['profit_loss'], 2) ?>
                         </td>
                         <td>
                             <?php if (!$alreadyPlaced): ?>

@@ -48,7 +48,7 @@ $currentUri = $_SERVER['REQUEST_URI'] ?? '/';
                         📦 持仓
                     </a>
                     <span class="token-display" title="代币余额">
-                        🪙 <?= number_format((float)$currentUser['token_balance'], 1) ?>
+                        🪙 <?= nf((float)$currentUser['token_balance'], 1) ?>
                     </span>
                     <a href="<?= url('/profile.php') ?>" class="user-name"><?= htmlspecialchars($currentUser['username']) ?></a>
                     <?php

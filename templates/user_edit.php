@@ -14,9 +14,9 @@
     <!-- User Info -->
     <div class="detail-stats-grid" style="margin-bottom:16px">
         <div class="detail-stat"><div class="ds-label">ID</div><div class="ds-value">#<?= $targetUser['id'] ?></div></div>
-        <div class="detail-stat"><div class="ds-label">代币余额</div><div class="ds-value">🪙 <?= number_format($targetUser['token_balance'], 1) ?></div></div>
-        <div class="detail-stat"><div class="ds-label">累计获得</div><div class="ds-value">🪙 <?= number_format($targetUser['total_earned'], 1) ?></div></div>
-        <div class="detail-stat"><div class="ds-label">累计消费</div><div class="ds-value">🪙 <?= number_format($targetUser['total_spent'], 1) ?></div></div>
+        <div class="detail-stat"><div class="ds-label">代币余额</div><div class="ds-value">🪙 <?= nf($targetUser['token_balance'], 1) ?></div></div>
+        <div class="detail-stat"><div class="ds-label">累计获得</div><div class="ds-value">🪙 <?= nf($targetUser['total_earned'], 1) ?></div></div>
+        <div class="detail-stat"><div class="ds-label">累计消费</div><div class="ds-value">🪙 <?= nf($targetUser['total_spent'], 1) ?></div></div>
         <div class="detail-stat"><div class="ds-label">持仓</div><div class="ds-value"><?= $hc ?> 项</div></div>
         <div class="detail-stat"><div class="ds-label">抽卡/交易</div><div class="ds-value">🎲<?= $gc ?> / 📋<?= $tc ?></div></div>
         <div class="detail-stat"><div class="ds-label">注册时间</div><div class="ds-value" style="font-size:14px"><?= $targetUser['created_at'] ?></div></div>
@@ -75,10 +75,10 @@
                 <td><a href="<?= url('/market_detail.php') ?>?id=<?= $h['stock_id'] ?>"><?= htmlspecialchars($h['stock_name']) ?></a></td>
                 <td><span class="rarity-badge <?= !empty($h['limited_edition']) ? 'limited' : $h['rarity'] ?>"><?= !empty($h['limited_edition']) ? '绝版' : (GachaEngine::RARITY_NAMES[$h['rarity']] ?? $h['rarity']) ?></span></td>
                 <td><?= $h['quantity'] ?></td>
-                <td>🪙 <?= number_format($h['avg_cost'], 2) ?></td>
-                <td>🪙 <?= number_format($h['current_price'], 2) ?></td>
-                <td>🪙 <?= number_format($h['market_value'], 2) ?></td>
-                <td class="<?= $h['profit_loss'] >= 0 ? 'text-green' : 'text-red' ?>"><?= $h['profit_loss'] >= 0 ? '+' : '' ?><?= number_format($h['profit_loss'], 2) ?></td>
+                <td>🪙 <?= nf($h['avg_cost'], 2) ?></td>
+                <td>🪙 <?= nf($h['current_price'], 2) ?></td>
+                <td>🪙 <?= nf($h['market_value'], 2) ?></td>
+                <td class="<?= $h['profit_loss'] >= 0 ? 'text-green' : 'text-red' ?>"><?= $h['profit_loss'] >= 0 ? '+' : '' ?><?= nf($h['profit_loss'], 2) ?></td>
             </tr>
             <?php endforeach; ?>
             </tbody></table>

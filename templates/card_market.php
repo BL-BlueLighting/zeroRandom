@@ -23,14 +23,14 @@
             <td><strong><?= htmlspecialchars($l['symbol']) ?></strong> <?= htmlspecialchars($l['stock_name']) ?></td>
             <td><span class="rarity-badge small <?= !empty($l['limited_edition']) ? 'limited' : $l['rarity'] ?>"><?= !empty($l['limited_edition']) ? '绝版' : (GachaEngine::RARITY_NAMES[$l['rarity']] ?? $l['rarity']) ?></span></td>
             <td><?= $l['quantity'] ?></td>
-            <td>🪙 <?= number_format($l['price'], 2) ?></td>
-            <td class="text-muted">🪙 <?= number_format($l['current_price'], 2) ?></td>
+            <td>🪙 <?= nf($l['price'], 2) ?></td>
+            <td class="text-muted">🪙 <?= nf($l['current_price'], 2) ?></td>
             <td><?= htmlspecialchars($l['seller_name']) ?></td>
             <td>
                 <?php if (Session::isLoggedIn() && $l['seller_id'] != Session::userId()): ?>
                 <form method="POST" action="<?= url('/card_market_buy.php') ?>" style="display:inline">
                     <input type="hidden" name="listing_id" value="<?= $l['id'] ?>">
-                    <button class="btn btn-xs btn-primary" onclick="return confirm('花费 🪙<?= number_format($l['price'] * $l['quantity'], 2) ?> 购买此卡牌？')">购买</button>
+                    <button class="btn btn-xs btn-primary" onclick="return confirm('花费 🪙<?= nf($l['price'] * $l['quantity'], 2) ?> 购买此卡牌？')">购买</button>
                 </form>
                 <?php elseif ($l['seller_id'] == Session::userId()): ?>
                 <span class="text-muted">自己的</span>
@@ -58,7 +58,7 @@
             <tr>
                 <td><?= htmlspecialchars($l['symbol']) ?> <?= htmlspecialchars($l['stock_name']) ?></td>
                 <td><?= $l['quantity'] ?></td>
-                <td>🪙 <?= number_format($l['price'], 2) ?></td>
+                <td>🪙 <?= nf($l['price'], 2) ?></td>
                 <td><?= $l['status'] === 'listed' ? '📌在售' : '✅已售' ?></td>
                 <td><?php if ($l['status'] === 'listed'): ?>
                     <form method="POST" action="<?= url('/card_market_cancel.php') ?>" style="display:inline">

@@ -46,7 +46,7 @@ include __DIR__ . '/layout/header.php';
     <div class="market-summary-bar">
         <div class="ms-item">
             <span class="ms-label">总市值</span>
-            <span class="ms-value">🪙 <?= number_format($summary['total_market_cap'], 0) ?></span>
+            <span class="ms-value">🪙 <?= nf($summary['total_market_cap'], 0) ?></span>
         </div>
         <div class="ms-item">
             <span class="ms-label">上市数量</span>
@@ -135,11 +135,11 @@ include __DIR__ . '/layout/header.php';
                             <?= !empty($s['limited_edition']) ? '绝版' : (GachaEngine::RARITY_NAMES[$s['rarity']] ?? $s['rarity']) ?>
                         </span>
                     </td>
-                    <td class="td-price">🪙 <?= number_format($s['current_price'], 2) ?></td>
+                    <td class="td-price">🪙 <?= nf($s['current_price'], 2) ?></td>
                     <td class="td-change <?= $s['price_change_pct'] >= 0 ? 'text-green' : 'text-red' ?>">
                         <?= $s['price_change_pct'] >= 0 ? '+' : '' ?><?= $s['price_change_pct'] ?>%
                     </td>
-                    <td class="td-cap"><?= number_format($s['market_cap'], 0) ?></td>
+                    <td class="td-cap"><?= nf($s['market_cap'], 0) ?></td>
                     <td class="td-actions">
                         <?php if (Session::isLoggedIn()): ?>
                         <button class="btn btn-xs btn-primary btn-buy"

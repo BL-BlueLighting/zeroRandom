@@ -47,10 +47,10 @@ include __DIR__ . '/layout/header.php';
                         <a href="<?= url('/profile.php') ?>?id=<?= $u['id'] ?>" style="font-weight:600;color:inherit"><?= htmlspecialchars($u['username']) ?></a>
                         <?= $isMe ? '<span class="badge-me">我</span>' : '' ?>
                     </td>
-                    <td>🪙 <?= number_format($u['token_balance'], 1) ?></td>
-                    <td>🪙 <?= number_format($u['portfolio_value'], 2) ?></td>
+                    <td>🪙 <?= nf($u['token_balance'], 1) ?></td>
+                    <td>🪙 <?= nf($u['portfolio_value'], 2) ?></td>
                     <td class="td-price">
-                        <strong>🪙 <?= number_format($u['net_worth'], 2) ?></strong>
+                        <strong>🪙 <?= nf($u['net_worth'], 2) ?></strong>
                     </td>
                     <td><?= $u['unique_stocks'] ?></td>
                     <td><?= $u['total_pulls'] ?></td>

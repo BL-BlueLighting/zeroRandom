@@ -56,7 +56,7 @@ include __DIR__ . '/layout/header.php';
         </div>
         <div class="sdh-right">
             <div class="sdh-price">
-                <span class="price-big">🪙 <?= number_format($stock['current_price'], 2) ?></span>
+                <span class="price-big">🪙 <?= nf($stock['current_price'], 2) ?></span>
                 <span class="price-change-big <?= $stock['price_change_pct'] >= 0 ? 'text-green' : 'text-red' ?>">
                     <?= $stock['price_change_pct'] >= 0 ? '+' : '' ?><?= $stock['price_change_pct'] ?>%
                 </span>
@@ -73,15 +73,15 @@ include __DIR__ . '/layout/header.php';
     <div class="detail-stats-grid">
         <div class="detail-stat">
             <div class="ds-label">市值</div>
-            <div class="ds-value">🪙 <?= number_format($stock['market_cap'], 0) ?></div>
+            <div class="ds-value">🪙 <?= nf($stock['market_cap'], 0) ?></div>
         </div>
         <div class="detail-stat">
             <div class="ds-label">流通量</div>
-            <div class="ds-value"><?= number_format($stock['circulating_supply']) ?></div>
+            <div class="ds-value"><?= nf($stock['circulating_supply']) ?></div>
         </div>
         <div class="detail-stat">
             <div class="ds-label">24h 成交量</div>
-            <div class="ds-value"><?= number_format($stock['volume_24h']) ?></div>
+            <div class="ds-value"><?= nf($stock['volume_24h']) ?></div>
         </div>
         <div class="detail-stat">
             <div class="ds-label">AC 率</div>
@@ -108,10 +108,10 @@ include __DIR__ . '/layout/header.php';
         <?php if ($userHolding): ?>
         <div class="holding-info">
             持仓: <strong><?= $userHolding['quantity'] ?></strong> 股 |
-            均价: <strong>🪙 <?= number_format($userHolding['avg_cost'], 2) ?></strong> |
-            市值: <strong>🪙 <?= number_format($userHolding['quantity'] * $stock['current_price'], 2) ?></strong>
+            均价: <strong>🪙 <?= nf($userHolding['avg_cost'], 2) ?></strong> |
+            市值: <strong>🪙 <?= nf($userHolding['quantity'] * $stock['current_price'], 2) ?></strong>
             <?php $pl = ($stock['current_price'] - $userHolding['avg_cost']) * $userHolding['quantity']; ?>
-            | 盈亏: <strong class="<?= $pl >= 0 ? 'text-green' : 'text-red' ?>"><?= $pl >= 0 ? '+' : '' ?><?= number_format($pl, 2) ?></strong>
+            | 盈亏: <strong class="<?= $pl >= 0 ? 'text-green' : 'text-red' ?>"><?= $pl >= 0 ? '+' : '' ?><?= nf($pl, 2) ?></strong>
         </div>
         <?php endif; ?>
 
@@ -126,9 +126,9 @@ include __DIR__ . '/layout/header.php';
                 ?>
                 <div class="trade-preview">
                     预计花费: 🪙 <span class="preview-amount" data-price="<?= round($stock['current_price'] * $buyPremium, 2) ?>">
-                        <?= number_format($stock['current_price'] * $buyPremium, 2) ?>
+                        <?= nf($stock['current_price'] * $buyPremium, 2) ?>
                     </span>
-                    <span class="text-muted">(市价 <?= number_format($stock['current_price'], 2) ?> <?= $buyPct ?>)</span>
+                    <span class="text-muted">(市价 <?= nf($stock['current_price'], 2) ?> <?= $buyPct ?>)</span>
                     (含 <?= TRADE_FEE_PCT ?>% 手续费)
                 </div>
                 <button type="submit" class="btn btn-primary btn-block">📈 买入</button>
@@ -141,7 +141,7 @@ include __DIR__ . '/layout/header.php';
                 <input type="number" name="quantity" id="sellQty" min="1" max="<?= $userHolding['quantity'] ?>" value="1" class="trade-input">
                 <div class="trade-preview">
                     预计获得: 🪙 <span class="preview-amount" data-price="<?= $stock['current_price'] ?>">
-                        <?= number_format($stock['current_price'], 2) ?>
+                        <?= nf($stock['current_price'], 2) ?>
                     </span>
                     (含 <?= TRADE_FEE_PCT ?>% 手续费)
                 </div>
