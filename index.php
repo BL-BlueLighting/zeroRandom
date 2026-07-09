@@ -14,4 +14,8 @@ require_once __DIR__ . '/adapters/manager.php';
 
 Session::start();
 
+// Auto-run periodic jobs
+require_once __DIR__ . '/core/AutoJob.php';
+AutoJob::run();
+
 require __DIR__ . '/templates/home.php';

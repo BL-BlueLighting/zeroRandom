@@ -7,6 +7,8 @@ require_once __DIR__ . '/core/TokenSystem.php';
 require_once __DIR__ . '/core/StockEngine.php';
 require_once __DIR__ . '/core/MarketEngine.php';
 Session::start();
+require_once __DIR__ . '/core/AutoJob.php';
+AutoJob::run();
 Session::requireAuth();
 
 $stockId = (int)($_POST['stock_id'] ?? 0);

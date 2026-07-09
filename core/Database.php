@@ -318,6 +318,7 @@ class Database {
             "ALTER TABLE notifications ADD COLUMN reward_tokens REAL DEFAULT 0",
             "ALTER TABLE notifications ADD COLUMN reward_stock_id INTEGER DEFAULT 0",
             "ALTER TABLE notifications ADD COLUMN reward_stock_quantity INTEGER DEFAULT 0",
+            "ALTER TABLE users ADD COLUMN last_active_at DATETIME",
         ];
         foreach ($columnMigrations as $sql) {
             try {

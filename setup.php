@@ -17,7 +17,7 @@ $brokenTables = [];
 
 // Expected schema: table_name => [label, [expected_columns...]]
 $expectedSchema = [
-    'users' => ['用户表', ['id', 'username', 'password_hash', 'platform_user_id', 'platform_name', 'token_balance', 'total_earned', 'total_spent', 'is_admin', 'created_at', 'updated_at']],
+    'users' => ['用户表', ['id', 'username', 'password_hash', 'platform_user_id', 'platform_name', 'token_balance', 'total_earned', 'total_spent', 'is_admin', 'created_at', 'updated_at', 'last_active_at']],
     'stocks' => ['股票表', ['id', 'symbol', 'name', 'adapter_key', 'adapter_name', 'category', 'rarity', 'total_supply', 'circulating_supply', 'base_price', 'current_price', 'prev_price', 'price_change_pct', 'volume_24h', 'market_cap', 'metadata', 'is_active', 'created_at', 'updated_at', 'limited_edition']],
     'stock_prices' => ['价格历史表', ['id', 'stock_id', 'price', 'ac_ratio', 'submit_count', 'ac_count', 'recorded_at']],
     'holdings' => ['持仓表', ['id', 'user_id', 'stock_id', 'quantity', 'avg_cost']],

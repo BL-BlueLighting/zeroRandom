@@ -12,6 +12,8 @@ require_once __DIR__ . '/core/QuestEngine.php';
 require_once __DIR__ . '/core/MarketEngine.php';
 require_once __DIR__ . '/adapters/manager.php';
 Session::start();
+require_once __DIR__ . '/core/AutoJob.php';
+AutoJob::run();
 
 $page = max(1, (int)($_GET['page'] ?? 1));
 $listings = MarketEngine::getListings($page);

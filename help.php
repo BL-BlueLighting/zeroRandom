@@ -13,5 +13,7 @@ require_once __DIR__ . '/core/TradingEngine.php';
 require_once __DIR__ . '/adapters/manager.php';
 
 Session::start();
+require_once __DIR__ . '/core/AutoJob.php';
+AutoJob::run();
 
 require __DIR__ . '/templates/help.php';

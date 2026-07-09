@@ -13,6 +13,8 @@ require_once __DIR__ . '/core/MarketEngine.php';
 require_once __DIR__ . '/core/CheckinEngine.php';
 require_once __DIR__ . '/adapters/manager.php';
 Session::start();
+require_once __DIR__ . '/core/AutoJob.php';
+AutoJob::run();
 
 $profileUserId = (int)($_GET['id'] ?? Session::userId());
 if ($profileUserId <= 0) $profileUserId = Session::userId();
