@@ -22,11 +22,12 @@ $totalPages = max(1, ceil($totalHoldings / $perPage));
 $holdings = array_slice($allHoldings, ($page - 1) * $perPage, $perPage);
 
 // Get placed cards
+$ksFilter = $isKs ? " AND s.adapter_name = 'fake'" : '';
 $stmt = $db->prepare("
     SELECT cp.*, s.symbol, s.name as stock_name, s.current_price, s.price_change_pct, s.rarity, s.limited_edition
     FROM card_placements cp
     JOIN stocks s ON cp.stock_id = s.id
-    WHERE cp.user_id = ?
+    WHERE cp.user_id = ?{$ksFilter}
     ORDER BY cp.slot
 ");
 $stmt->execute([$userId]);
@@ -81,20 +82,20 @@ include __DIR__ . '/layout/header.php';
 
 <div class="page-portfolio">
     <div class="page-header">
-        <h1>📦 我的持仓</h1>
-        <span class="token-display large">🪙 <?= nf($stats['token_balance'] ?? 0, 1) ?></span>
+        <h1><?= $isKs ? '🌌 天界持仓' : '📦 我的持仓' ?></h1>
+        <span class="token-display large"><?= $isKs ? '🌀' : '🪙' ?> <?= nf($stats['token_balance'] ?? 0, 1) ?></span>
     </div>
 
     <!-- Portfolio Stats -->
     <div class="portfolio-stats">
         <div class="pstat-card">
             <div class="pstat-label">总资产</div>
-            <div class="pstat-value">🪙 <?= nf($stats['net_worth'] ?? 0, 2) ?></div>
-            <div class="pstat-sub">代币 + 持仓市值</div>
+            <div class="pstat-value"><?= $isKs ? '🌀' : '🪙' ?> <?= nf($stats['net_worth'] ?? 0, 2) ?></div>
+            <div class="pstat-sub"><?= $isKs ? 'SKYT + 持仓市值' : '代币 + 持仓市值' ?></div>
         </div>
         <div class="pstat-card">
             <div class="pstat-label">持仓市值</div>
-            <div class="pstat-value">🪙 <?= nf($summary['total_value'] ?? 0, 2) ?></div>
+            <div class="pstat-value"><?= $isKs ? '🌀' : '🪙' ?> <?= nf($summary['total_value'] ?? 0, 2) ?></div>
         </div>
         <div class="pstat-card">
             <div class="pstat-label">总盈亏</div>
@@ -103,7 +104,7 @@ include __DIR__ . '/layout/header.php';
             </div>
             <?php $withdrawable = max(0, $summary['total_pl'] ?? 0); if ($withdrawable > 0): ?>
             <div class="pstat-sub">
-                <form method="POST" action="<?= url('/portfolio_withdraw.php') ?>" style="display:inline" onsubmit="return confirm('确定提现 <?= nf($withdrawable, 2) ?> 枚代币？提现后持仓均价将重置为当前价。')">
+                <form method="POST" action="<?= url('/portfolio_withdraw.php') ?>" style="display:inline" onsubmit="return confirm('确定提现 <?= nf($withdrawable, 2) ?> 枚<?= $isKs ? 'SKYT' : '代币' ?>？提现后持仓均价将重置为当前价。')">
                     <button class="btn btn-xs btn-primary" style="margin-top:4px;font-size:12px;padding:2px 10px">💰 提现盈利</button>
                 </form>
             </div>
@@ -111,7 +112,7 @@ include __DIR__ . '/layout/header.php';
         </div>
         <div class="pstat-card">
             <div class="pstat-label">每日预估收益</div>
-            <div class="pstat-value text-green">🪙 +<?= nf($dailyEarnings, 2) ?></div>
+            <div class="pstat-value text-green"><?= $isKs ? '🌀' : '🪙' ?> +<?= nf($dailyEarnings, 2) ?></div>
             <div class="pstat-sub">来自 <?= count($placedCards) ?> 张放置卡牌</div>
         </div>
     </div>
