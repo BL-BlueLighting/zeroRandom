@@ -80,6 +80,7 @@ a{color:#4da6ff}
         'daily_checkins' => '每日签到表',
         'quest_config' => '任务配置表',
         'user_quests' => '用户任务进度表',
+        'user_messages' => '用户消息表',
     ];
 
     $total = count($migrations);
@@ -368,6 +369,17 @@ function getMigrationSQL(string $table): string {
                 UNIQUE(user_id, quest_id)
             )
         ",
+        'user_messages' => "
+            CREATE TABLE IF NOT EXISTS user_messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                to_user INTEGER NOT NULL,
+                from_user TEXT NOT NULL DEFAULT 'system',
+                title TEXT NOT NULL,
+                content TEXT,
+                is_read INTEGER DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        ",
     ];
     return $sqls[$table] ?? '';
 }
@@ -389,6 +401,15 @@ function runColumnMigrations(PDO $db): void {
             FOREIGN KEY (user_id) REFERENCES users(id),
             FOREIGN KEY (notification_id) REFERENCES notifications(id),
             UNIQUE(user_id, notification_id)
+        )",
+        "CREATE TABLE IF NOT EXISTS user_messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            to_user INTEGER NOT NULL,
+            from_user TEXT NOT NULL DEFAULT 'system',
+            title TEXT NOT NULL,
+            content TEXT,
+            is_read INTEGER DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )",
     ];
     foreach ($cmds as $sql) {

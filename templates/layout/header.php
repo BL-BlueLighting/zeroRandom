@@ -51,6 +51,17 @@ $currentUri = $_SERVER['REQUEST_URI'] ?? '/';
                         🪙 <?= number_format((float)$currentUser['token_balance'], 1) ?>
                     </span>
                     <a href="<?= url('/profile.php') ?>" class="user-name"><?= htmlspecialchars($currentUser['username']) ?></a>
+                    <?php
+                    try {
+                        $__msgDb = Database::getInstance();
+                        $__msgUid = (int)$currentUser['id'];
+                        $msgCount = (int)$__msgDb->query("SELECT COUNT(*) FROM user_messages WHERE to_user = {$__msgUid} AND is_read = 0")->fetchColumn();
+                        if ($msgCount > 0):
+                    ?>
+                    <a href="<?= url('/messages.php') ?>" class="btn btn-sm btn-outline" style="color:var(--accent-gold);position:relative">
+                        📬 <span style="background:var(--red);color:#fff;border-radius:10px;padding:0 5px;font-size:11px;font-weight:700"><?= $msgCount ?></span>
+                    </a>
+                    <?php endif; } catch (Exception $e) {} ?>
                     <?php $ojUrl = oj_url(); if ($ojUrl): ?>
                     <a href="<?= $ojUrl ?>" class="btn btn-sm btn-outline" target="_blank" title="返回OJ">↩ OJ</a>
                     <?php endif; ?>

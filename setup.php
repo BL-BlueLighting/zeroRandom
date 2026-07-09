@@ -38,6 +38,7 @@ $expectedSchema = [
     'quest_config' => ['任务配置表', ['id', 'type', 'name', 'description', 'condition_type', 'condition_value', 'reward_tokens', 'is_active', 'created_at']],
     'user_quests' => ['用户任务进度表', ['id', 'user_id', 'quest_id', 'progress', 'completed', 'completed_at']],
     'claimed_rewards' => ['领取记录表', ['id', 'user_id', 'notification_id', 'created_at']],
+    'user_messages' => ['用户消息表', ['id', 'to_user', 'from_user', 'title', 'content', 'is_read', 'created_at']],
 ];
 
 // Check data dir writable

@@ -311,6 +311,29 @@ class Database {
             }
         }
 
+        // New tables
+        $newTables = [
+            'user_messages' => "
+                CREATE TABLE IF NOT EXISTS user_messages (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    to_user INTEGER NOT NULL,
+                    from_user TEXT NOT NULL DEFAULT 'system',
+                    title TEXT NOT NULL,
+                    content TEXT,
+                    is_read INTEGER DEFAULT 0,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            ",
+        ];
+        foreach ($newTables as $table => $sql) {
+            try {
+                $db->exec($sql);
+                $results[$table] = 'ok';
+            } catch (PDOException $e) {
+                $results[$table] = 'error: ' . $e->getMessage();
+            }
+        }
+
         // Column migrations (add if not exist — SQLite ignores duplicate column errors with try/catch)
         $columnMigrations = [
             "ALTER TABLE card_pools ADD COLUMN is_limited INTEGER DEFAULT 0",

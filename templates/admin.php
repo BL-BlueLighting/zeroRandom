@@ -76,6 +76,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message = '✅ 梭哈功能已' . (($_POST['allin_value'] ?? '0') === '1' ? '开启' : '关闭');
     }
 
+
+    if ($postAction === 'set_max_holdings') {
+        $val = max(0, (int)($_POST['max_holdings'] ?? 30000));
+        platform_config_set('system', 'max_holdings', (string)$val);
+        $message = "✅ 最大持仓数已设为 {$val}";
+    }
+
     if ($postAction === 'bulk_edit_stocks') {
         $prefix = strtoupper(trim($_POST['bulk_prefix'] ?? ''));
         $action = $_POST['bulk_action'] ?? '';
@@ -731,6 +738,18 @@ include __DIR__ . '/layout/header.php';
                 <button class="btn btn-sm <?= $allinEnabled === '1' ? 'btn-primary' : 'btn-outline' ?>" name="allin_value" value="<?= $allinEnabled === '1' ? '0' : '1' ?>">
                     <?= $allinEnabled === '1' ? '✅ 已开启' : '⛔ 已关闭' ?>
                 </button>
+            </form>
+        </section>
+
+        <!-- Max Holdings Config -->
+        <section class="admin-section">
+            <h2>📊 持仓限制</h2>
+            <p class="text-muted">持仓超出限制时自动按 50% 折算为代币，净资产 > 300 万时发送站内信</p>
+            <form method="POST" style="display:flex;gap:12px;align-items:center">
+                <input type="hidden" name="action" value="set_max_holdings">
+                <label class="text-muted">最大持仓数：</label>
+                <input type="number" name="max_holdings" value="<?= (int)platform_config('system', 'max_holdings', '30000') ?>" min="0" class="form-input" style="width:120px">
+                <button class="btn btn-primary btn-sm">保存</button>
             </form>
         </section>
 

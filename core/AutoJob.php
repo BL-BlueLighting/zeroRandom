@@ -100,6 +100,9 @@ class AutoJob {
 
             // Perform the price refresh
             self::doRefreshPrices();
+
+            // Check and enforce holdings limit
+            self::enforceHoldingsLimit();
         } catch (Exception $e) {
             // Silently handle
         }
@@ -133,6 +136,81 @@ class AutoJob {
             if ($newPrice > 0) {
                 $update->execute([$newPrice, $newPrice, $s['id']]);
             }
+        }
+    }
+
+    /**
+     * Enforce holdings limit: users exceeding max_holdings get excess
+     * converted at 50% market value into tokens.
+     * Users with net worth > 3,000,000 also receive a station message.
+     */
+    private static function enforceHoldingsLimit(): void {
+        try {
+            $db = Database::getInstance();
+            $maxHoldings = (int)platform_config('system', 'max_holdings', '30000');
+            if ($maxHoldings <= 0) return;
+
+            $users = $db->query("
+                SELECT h.user_id, SUM(h.quantity) as total_qty,
+                       SUM(h.quantity * s.current_price) as total_value,
+                       u.token_balance
+                FROM holdings h
+                JOIN stocks s ON h.stock_id = s.id
+                JOIN users u ON h.user_id = u.id
+                WHERE h.quantity > 0
+                GROUP BY h.user_id
+                HAVING total_qty > {$maxHoldings}
+            ")->fetchAll();
+
+            foreach ($users as $u) {
+                $userId = (int)$u['user_id'];
+                $excess = (int)$u['total_qty'] - $maxHoldings;
+                if ($excess <= 0) continue;
+
+                $excessHoldings = $db->query("
+                    SELECT h.id, h.stock_id, h.quantity, s.current_price
+                    FROM holdings h JOIN stocks s ON h.stock_id = s.id
+                    WHERE h.user_id = {$userId} AND h.quantity > 0
+                    ORDER BY s.current_price ASC
+                ")->fetchAll();
+
+                $convertedTokens = 0;
+                $convertedCount = 0;
+                $remaining = $excess;
+
+                foreach ($excessHoldings as $hold) {
+                    if ($remaining <= 0) break;
+                    $qty = (int)$hold['quantity'];
+                    $take = min($qty, $remaining);
+                    $value = (float)$hold['current_price'] * $take * 0.5;
+                    $convertedTokens += $value;
+                    $convertedCount += $take;
+                    $remaining -= $take;
+
+                    $newQty = $qty - $take;
+                    if ($newQty <= 0) {
+                        $db->prepare("DELETE FROM holdings WHERE id = ?")->execute([$hold['id']]);
+                    } else {
+                        $db->prepare("UPDATE holdings SET quantity = ? WHERE id = ?")->execute([$newQty, $hold['id']]);
+                    }
+                }
+
+                if ($convertedTokens > 0) {
+                    $db->prepare("UPDATE users SET token_balance = token_balance + ?, total_earned = total_earned + ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
+                        ->execute([$convertedTokens, $convertedTokens, $userId]);
+                    $db->prepare("INSERT INTO transactions (user_id, type, total_amount, notes) VALUES (?, 'auto_convert', ?, ?)")
+                        ->execute([$userId, $convertedTokens, "超出持仓限制，{$convertedCount} 股按 50% 折算为 {$convertedTokens} 代币"]);
+
+                    $netWorth = (float)$u['token_balance'] + (float)$u['total_value'];
+                    if ($netWorth > 3000000) {
+                        $msg = "您的持仓超出限制（{$maxHoldings} 股），已自动将超出的 {$convertedCount} 股按市值 50% 折算为 {$convertedTokens} 代币并存入您的钱包。";
+                        $db->prepare("INSERT INTO user_messages (to_user, from_user, title, content) VALUES (?, 'system', ?, ?)")
+                            ->execute([$userId, '持仓超出限制，自动折算通知', $msg]);
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            // Silently handle
         }
     }
 }
