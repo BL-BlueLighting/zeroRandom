@@ -132,7 +132,7 @@ include __DIR__ . '/layout/header.php';
                     <span class="rarity-badge <?= !empty($placed['limited_edition']) ? 'limited' : $placed['rarity'] ?>"><?= !empty($placed['limited_edition']) ? '绝版' : (GachaEngine::RARITY_NAMES[$placed['rarity']] ?? $placed['rarity']) ?></span>
                     <div class="ps-symbol"><?= htmlspecialchars($placed['symbol']) ?></div>
                     <div class="ps-name"><?= htmlspecialchars($placed['stock_name']) ?></div>
-                    <div class="ps-price">🪙 <?= nf($placed['current_price'], 2) ?></div>
+                    <div class="ps-price"><?= $isKs ? '🌀' : '🪙' ?> <?= nf($placed['current_price'], 2) ?></div>
                     <div class="ps-change <?= $placed['price_change_pct'] >= 0 ? 'text-green' : 'text-red' ?>">
                         <?= $placed['price_change_pct'] >= 0 ? '+' : '' ?><?= $placed['price_change_pct'] ?>%
                     </div>
@@ -192,9 +192,9 @@ include __DIR__ . '/layout/header.php';
                         <td><a href="<?= url('/market_detail.php') ?>?id=<?= $h['stock_id'] ?>"><?= htmlspecialchars($h['stock_name']) ?></a></td>
                         <td><span class="rarity-badge <?= !empty($h['limited_edition']) ? 'limited' : $h['rarity'] ?>"><?= !empty($h['limited_edition']) ? '绝版' : (GachaEngine::RARITY_NAMES[$h['rarity']] ?? $h['rarity']) ?></span></td>
                         <td class="td-qty"><?= $h['quantity'] ?></td>
-                        <td>🪙 <?= nf($h['avg_cost'], 2) ?></td>
-                        <td>🪙 <?= nf($h['current_price'], 2) ?></td>
-                        <td>🪙 <?= nf($h['market_value'], 2) ?></td>
+                        <td><?= $isKs ? '🌀' : '🪙' ?> <?= nf($h['avg_cost'], 2) ?></td>
+                        <td><?= $isKs ? '🌀' : '🪙' ?> <?= nf($h['current_price'], 2) ?></td>
+                        <td><?= $isKs ? '🌀' : '🪙' ?> <?= nf($h['market_value'], 2) ?></td>
                         <td class="<?= $h['profit_loss'] >= 0 ? 'text-green' : 'text-red' ?>">
                             <?= $h['profit_loss'] >= 0 ? '+' : '' ?><?= nf($h['profit_loss'], 2) ?>
                         </td>
