@@ -1,4 +1,4 @@
-<?php $pageTitle = '任务'; include __DIR__ . '/layout/header.php'; ?>
+<?php $pageTitle = is_kaleidoscope() ? '天界任务' : '任务'; include __DIR__ . '/layout/header.php'; ?>
 <div class="page-market" style="max-width:800px;margin:0 auto">
     <div class="page-header">
         <h1>🎯 任务</h1>

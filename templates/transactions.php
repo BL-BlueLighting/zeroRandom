@@ -2,7 +2,7 @@
 /**
  * OIManka - Transaction History
  */
-$pageTitle = '交易记录';
+$pageTitle = is_kaleidoscope() ? '天界交易记录' : '交易记录';
 
 $userId = Session::userId();
 $page = max(1, (int)($_GET['page'] ?? 1));

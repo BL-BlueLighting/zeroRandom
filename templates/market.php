@@ -2,7 +2,7 @@
 /**
  * OIManka - Stock Market
  */
-$pageTitle = '股票';
+$pageTitle = is_kaleidoscope() ? '天界股市' : '股票';
 
 $category = $_GET['category'] ?? null;
 $sort = $_GET['sort'] ?? 'market_cap';

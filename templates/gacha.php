@@ -2,7 +2,7 @@
 /**
  * zero Random - Gacha Pull Page
  */
-$pageTitle = '抽卡';
+$pageTitle = is_kaleidoscope() ? '天界抽卡' : '抽卡';
 
 include __DIR__ . '/layout/header.php';
 ?>

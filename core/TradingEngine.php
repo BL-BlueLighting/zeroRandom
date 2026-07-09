@@ -275,6 +275,7 @@ class TradingEngine {
         } elseif ($sort === 'name') {
             $orderClause = 's.name ASC';
         }
+        $ksFilter = (isset($_SESSION['layer']) && $_SESSION['layer'] === 'kaleidoscope') ? " AND s.adapter_name = 'fake'" : '';
         $stmt = $db->prepare("
             SELECT
                 h.*,
@@ -294,7 +295,7 @@ class TradingEngine {
                 END as profit_loss_pct
             FROM holdings h
             JOIN stocks s ON h.stock_id = s.id
-            WHERE h.user_id = ? AND h.quantity > 0
+            WHERE h.user_id = ? AND h.quantity > 0{$ksFilter}
             ORDER BY {$orderClause}
         ");
         $stmt->execute([$userId]);

@@ -2,7 +2,7 @@
 /**
  * OIManka - Rankings
  */
-$pageTitle = '排行榜';
+$pageTitle = is_kaleidoscope() ? '天界排行榜' : '排行榜';
 
 try {
     $leaderboard = TokenSystem::getLeaderboard(50);

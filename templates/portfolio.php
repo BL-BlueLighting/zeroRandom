@@ -2,11 +2,17 @@
 /**
  * zero Random - Portfolio with Card Placement
  */
-$pageTitle = '我的持仓';
+$pageTitle = $isKs ? '天界持仓' : '我的持仓';
 
 $userId = Session::userId();
 $db = Database::getInstance();
+$isKs = is_kaleidoscope();
 $stats = TokenSystem::getUserStats($userId);
+if ($isKs) {
+    $ksBal = TokenSystem::getKaleidoscopeBalance($userId);
+    $stats['token_balance'] = $ksBal;
+    $stats['net_worth'] = $ksBal + ($stats['portfolio_value'] ?? 0);
+}
 $sort = $_GET['sort'] ?? 'value';
 $page = max(1, (int)($_GET['page'] ?? 1));
 $perPage = 20;
