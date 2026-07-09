@@ -411,6 +411,10 @@ function runColumnMigrations(PDO $db): void {
             is_read INTEGER DEFAULT 0,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )",
+        "ALTER TABLE users ADD COLUMN last_active_at DATETIME",
+        "ALTER TABLE users ADD COLUMN number_style TEXT DEFAULT 'wan'",
+        "ALTER TABLE users ADD COLUMN kaleidoscope_balance REAL DEFAULT 0",
+        "ALTER TABLE users ADD COLUMN kaleidoscope_expires_at DATETIME",
     ];
     foreach ($cmds as $sql) {
         try { $db->exec($sql); } catch (PDOException $e) { /* ignore if exists */ }
