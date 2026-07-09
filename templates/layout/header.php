@@ -56,12 +56,11 @@ $currentUri = $_SERVER['REQUEST_URI'] ?? '/';
                         $__msgDb = Database::getInstance();
                         $__msgUid = (int)$currentUser['id'];
                         $msgCount = (int)$__msgDb->query("SELECT COUNT(*) FROM user_messages WHERE to_user = {$__msgUid} AND is_read = 0")->fetchColumn();
-                        if ($msgCount > 0):
                     ?>
-                    <a href="<?= url('/messages.php') ?>" class="btn btn-sm btn-outline" style="color:var(--accent-gold);position:relative">
-                        📬 <span style="background:var(--red);color:#fff;border-radius:10px;padding:0 5px;font-size:11px;font-weight:700"><?= $msgCount ?></span>
+                    <a href="<?= url('/messages.php') ?>" class="btn btn-sm btn-outline" style="position:relative">
+                        📬<?php if ($msgCount > 0): ?><span style="background:var(--red);color:#fff;border-radius:10px;padding:0 5px;font-size:11px;font-weight:700;margin-left:2px"><?= $msgCount ?></span><?php endif; ?>
                     </a>
-                    <?php endif; } catch (Exception $e) {} ?>
+                    <?php } catch (Exception $e) {} ?>
                     <?php $ojUrl = oj_url(); if ($ojUrl): ?>
                     <a href="<?= $ojUrl ?>" class="btn btn-sm btn-outline" target="_blank" title="返回OJ">↩ OJ</a>
                     <?php endif; ?>
