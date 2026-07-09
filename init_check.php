@@ -3,6 +3,7 @@
  * OIManka - Database initialization check.
  * Include this AFTER config.php and Database.php in entry point files.
  */
+require_once __DIR__ . '/helpers.php';
 $__dataDir = dirname(defined('DB_PATH') ? DB_PATH : __DIR__ . '/data/oimanka.db');
 if (!is_writable(dirname($__dataDir)) && !is_writable($__dataDir)) {
     http_response_code(500);

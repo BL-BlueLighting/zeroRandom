@@ -110,19 +110,6 @@ function oj_url(): string {
 define('OJ_URL_FN', true); // signal that oj_url() is available
 
 /**
- * Format numbers with 10000-based grouping (Chinese 万/亿).
- * For token/money amounts; small numbers keep regular formatting.
- */
-function nf(float $num, int $decimals = 2): string {
-    if ($num >= 100000000) {
-        return number_format($num / 100000000, $decimals) . '亿';
-    } elseif ($num >= 10000) {
-        return number_format($num / 10000, $decimals) . '万';
-    }
-    return number_format($num, $decimals);
-}
-
-/**
  * Get the base path for URL generation.
  * Extracted from APP_URL (e.g. APP_URL = "http://noiclub.cn/zeroran" → "/zeroran").
  */
