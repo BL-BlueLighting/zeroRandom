@@ -4,9 +4,34 @@
  *
  * Enter DB_INIT_KEY to run migrations and initialize/repair the database.
  * Detects missing tables AND column structure issues.
+ *
+ * CLI: php setup.php verifysetup  — 创建验证文件，无需密钥即可迁移
  */
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/core/Database.php';
+
+// CLI mode: create verification token
+if (PHP_SAPI === 'cli' && ($argv[1] ?? '') === 'verifysetup') {
+    $token = bin2hex(random_bytes(16));
+    $vdir = __DIR__ . '/data';
+    if (!is_dir($vdir)) mkdir($vdir, 0777, true);
+    file_put_contents($vdir . '/.setup_verify', $token . ':' . time());
+    echo "✅ 验证文件已创建，请在5分钟内访问 setup.php 执行迁移。\n";
+    exit(0);
+}
+
+// Browser mode: check verification file (valid for 5 minutes)
+$verified = false;
+$vFile = __DIR__ . '/data/.setup_verify';
+if (file_exists($vFile)) {
+    $content = file_get_contents($vFile);
+    $parts = explode(':', $content);
+    if (count($parts) === 2 && time() - (int)$parts[1] < 300) {
+        $verified = true;
+    } else {
+        unlink($vFile);
+    }
+}
 
 $message = null;
 $error = null;
@@ -17,7 +42,7 @@ $brokenTables = [];
 
 // Expected schema: table_name => [label, [expected_columns...]]
 $expectedSchema = [
-    'users' => ['用户表', ['id', 'username', 'password_hash', 'platform_user_id', 'platform_name', 'token_balance', 'total_earned', 'total_spent', 'is_admin', 'created_at', 'updated_at', 'last_active_at']],
+    'users' => ['用户表', ['id', 'username', 'password_hash', 'platform_user_id', 'platform_name', 'token_balance', 'total_earned', 'total_spent', 'is_admin', 'created_at', 'updated_at', 'last_active_at', 'number_style']],
     'stocks' => ['股票表', ['id', 'symbol', 'name', 'adapter_key', 'adapter_name', 'category', 'rarity', 'total_supply', 'circulating_supply', 'base_price', 'current_price', 'prev_price', 'price_change_pct', 'volume_24h', 'market_cap', 'metadata', 'is_active', 'created_at', 'updated_at', 'limited_edition']],
     'stock_prices' => ['价格历史表', ['id', 'stock_id', 'price', 'ac_ratio', 'submit_count', 'ac_count', 'recorded_at']],
     'holdings' => ['持仓表', ['id', 'user_id', 'stock_id', 'quantity', 'avg_cost']],
@@ -91,7 +116,7 @@ if (!is_writable(dirname($dataDir)) && !is_writable($dataDir)) {
 // Handle POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error) {
     $key = $_POST['key'] ?? '';
-    if ($key !== DB_INIT_KEY) {
+    if (!$verified && $key !== DB_INIT_KEY) {
         $error = '❌ 初始化密钥错误！';
     } else {
         try {
@@ -225,15 +250,21 @@ th{color:#6666a0;font-size:11px;text-transform:uppercase;white-space:nowrap}
 
     <?php if ($missingCount + $brokenCount > 0): ?>
     <div class="warning" style="text-align:center">
-        ⚠️ 检测到 <?= $missingCount ?> 个缺失表 + <?= $brokenCount ?> 个表缺少字段，请输入密钥执行迁移修复。
+        ⚠️ 检测到 <?= $missingCount ?> 个缺失表 + <?= $brokenCount ?> 个表缺少字段
     </div>
     <form method="POST">
+        <?php if ($verified): ?>
+        <p style="color:#4ade80;font-size:13px;text-align:center;margin-bottom:12px">✅ 已验证，可直接执行迁移</p>
+        <button class="btn btn-warning">🛠️ 执行迁移修复</button>
+        <?php else: ?>
+        <p style="color:#6666a0;font-size:13px;text-align:center;margin-bottom:12px">输入密钥或执行 <span class="mono">php setup.php verifysetup</span> 验证</p>
         <input type="text" name="key" placeholder="输入初始化密钥" autocomplete="off">
         <button class="btn btn-warning">🛠️ 执行迁移修复</button>
+        <p style="font-size:12px;text-align:center;margin-top:8px;color:#6666a0">
+            密钥在 <span class="mono">config.php</span> 或终端执行 <span class="mono">php setup.php verifysetup</span>
+        </p>
+        <?php endif; ?>
     </form>
-    <p style="font-size:12px;text-align:center;margin-top:8px;color:#6666a0">
-        密钥在 <span class="mono">config.php</span> 中的 <span class="mono">DB_INIT_KEY</span>
-    </p>
     <?php elseif ($dbOk): ?>
     <div style="text-align:center;margin-top:16px">
         <a href="<?= APP_URL ?>/" class="btn btn-success" style="padding:12px 40px">🚀 进入程序</a>
