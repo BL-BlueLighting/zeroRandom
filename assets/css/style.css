@@ -36,6 +36,7 @@
     --radius-lg: 12px;
     --shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
     --transition: 0.2s ease;
+    --banner-bg: #1a1a3a;
 }
 
 /* Kaleidoscope (天·界) white theme */
@@ -57,6 +58,7 @@ html[data-layer="kaleidoscope"] {
     --green-bg: #e8f5e9;
     --red-bg: #fbe9e7;
     --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    --banner-bg: #e8e0d8;
 }
 
 html { font-size: 15px; }
@@ -500,9 +502,9 @@ html[data-layer="kaleidoscope"] .header-inner { gap: 6px; padding: 0 10px; }
 
 /* ── Notification Banner ── */
 .notification-banner {
-    max-width: 1200px; margin: 0 auto; padding: 8px 20px;
+    max-width: 1600px; margin: 0 auto; padding: 8px 20px;
     display: flex; align-items: center; gap: 8px;
-    background: #1a1a3a; border-bottom: 1px solid var(--border);
+    background: var(--banner-bg); border-bottom: 1px solid var(--border);
     font-size: 13px; color: var(--accent-gold);
 }
 .note-icon { font-size: 16px; }

@@ -42,6 +42,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if (!$receiver || (int)$receiver['id'] === $userId) {
                 $result = ['success' => false, 'message' => '接收方不存在或不能转账给自己。'];
+            } elseif (isset($_SESSION['layer']) && $_SESSION['layer'] === 'kaleidoscope') {
+                $isKs = true;
+                if (!TokenSystem::canAffordKaleidoscope($userId, $amount)) {
+                    $result = ['success' => false, 'message' => 'SKYT 不足。'];
+                } else {
+                    $db->beginTransaction();
+                    try {
+                        $db->prepare("UPDATE users SET kaleidoscope_balance = kaleidoscope_balance - ? WHERE id = ?")->execute([$amount, $userId]);
+                        $db->prepare("UPDATE users SET kaleidoscope_balance = kaleidoscope_balance + ? WHERE id = ?")->execute([$amount, (int)$receiver['id']]);
+                        $db->commit();
+                        $result = ['success' => true, 'message' => "成功向 {$receiver['username']} 转账 {$amount} SKYT！"];
+                    } catch (Exception $e) {
+                        $db->rollBack();
+                        $result = ['success' => false, 'message' => '转账失败。'];
+                    }
+                }
             } elseif (!TokenSystem::canAfford($userId, $amount)) {
                 $result = ['success' => false, 'message' => '代币不足。'];
             } else {

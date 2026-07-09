@@ -14,17 +14,24 @@ class CheckinEngine {
         if (!self::canCheckin($userId)) {
             return ['success' => false, 'message' => '今天已经签到过了！'];
         }
+        $isKs = ($_SESSION['layer'] ?? 'default') === 'kaleidoscope';
+        $reward = $isKs ? 1 : self::DAILY_REWARD;
+        $unit = $isKs ? 'SKYT' : '代币';
+
         $db = Database::getInstance();
         $db->beginTransaction();
         try {
             $db->prepare("INSERT INTO daily_checkins (user_id, checkin_date) VALUES (?, ?)")
                 ->execute([$userId, date('Y-m-d')]);
-            $stmt = $db->prepare("UPDATE users SET token_balance = token_balance + ?, total_earned = total_earned + ? WHERE id = ?");
-            $stmt->execute([self::DAILY_REWARD, self::DAILY_REWARD, $userId]);
-            $stmt = $db->prepare("INSERT INTO transactions (user_id, type, total_amount, notes) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$userId, 'checkin', self::DAILY_REWARD, '每日签到']);
+            if ($isKs) {
+                $db->prepare("UPDATE users SET kaleidoscope_balance = kaleidoscope_balance + ? WHERE id = ?")->execute([$reward, $userId]);
+            } else {
+                $db->prepare("UPDATE users SET token_balance = token_balance + ?, total_earned = total_earned + ? WHERE id = ?")->execute([$reward, $reward, $userId]);
+            }
+            $db->prepare("INSERT INTO transactions (user_id, type, total_amount, notes) VALUES (?, ?, ?, ?)")
+                ->execute([$userId, 'checkin', $reward, '每日签到']);
             $db->commit();
-            return ['success' => true, 'message' => '签到成功！获得 ' . self::DAILY_REWARD . ' 枚代币。'];
+            return ['success' => true, 'message' => "签到成功！获得 {$reward} {$unit}。"];
         } catch (Exception $e) {
             $db->rollBack();
             return ['success' => false, 'message' => '签到失败: ' . $e->getMessage()];

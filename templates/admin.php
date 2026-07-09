@@ -9,6 +9,8 @@ if (!$currentUser || !$currentUser['is_admin']) {
     header('Location: /');
     exit;
 }
+$isKs = is_kaleidoscope();
+$pageTitle = $isKs ? '天界管理后台' : '管理后台';
 
 $db = Database::getInstance();
 $message = null;
@@ -18,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $postAction = $_POST['action'] ?? '';
 
     // ── HustOJ Config ──
-    if ($postAction === 'save_hustoj_config') {
+    if (!$isKs && $postAction === 'save_hustoj_config') {
         $fields = ['db_host', 'db_port', 'db_name', 'db_user', 'db_pass', 'oj_url', 'category_source'];
         foreach ($fields as $f) {
             platform_config_set('hustoj', $f, $_POST[$f] ?? '');
@@ -29,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // ── Sync Stocks ──
-    if ($postAction === 'sync_stocks') {
+    if (!$isKs && $postAction === 'sync_stocks') {
         $adapter = AdapterManager::get('hustoj');
         if ($adapter && $adapter->testConnection()) {
             PoolEngine::syncLimitedEdition();
@@ -455,13 +457,14 @@ include __DIR__ . '/layout/header.php';
 ?>
 
 <div class="page-admin">
-    <h1>⚙️ 管理后台</h1>
+    <h1><?= $isKs ? '🌌 天界' : '⚙️' ?>管理后台</h1>
 
     <?php if ($message): ?>
     <div class="flash-message flash-success"><?= $message ?></div>
     <?php endif; ?>
 
     <div class="admin-grid">
+        <?php if (!$isKs): ?>
         <!-- HustOJ Config -->
         <section class="admin-section">
             <h2>🔌 HustOJ 配置</h2>
@@ -523,6 +526,7 @@ include __DIR__ . '/layout/header.php';
                 </form>
             </div>
         </section>
+        <?php endif; ?>
 
         <!-- Gacha Config -->
         <section class="admin-section">
