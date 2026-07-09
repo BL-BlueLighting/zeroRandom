@@ -120,7 +120,7 @@ include __DIR__ . '/layout/header.php';
             <?php foreach ($topStocks as $s): ?>
             <a href="./market_detail.php?id=<?= $s['id'] ?>" class="stock-mini-item">
                 <div class="stock-mini-header">
-                    <span class="rarity-badge <?= $s['rarity'] ?>"><?= GachaEngine::RARITY_NAMES[$s['rarity']] ?? $s['rarity'] ?></span>
+                    <span class="rarity-badge <?= !empty($s['limited_edition']) ? 'limited' : $s['rarity'] ?>"><?= !empty($s['limited_edition']) ? '绝版' : (GachaEngine::RARITY_NAMES[$s['rarity']] ?? $s['rarity']) ?></span>
                     <span class="stock-symbol"><?= htmlspecialchars($s['symbol']) ?></span>
                     <span class="stock-name"><?= htmlspecialchars($s['name']) ?></span>
                 </div>
