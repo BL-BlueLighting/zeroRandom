@@ -35,6 +35,7 @@ class Database {
             // Enable WAL mode for better concurrent access
             self::$instance->exec('PRAGMA journal_mode=WAL');
             self::$instance->exec('PRAGMA foreign_keys=ON');
+            self::$instance->exec('PRAGMA busy_timeout=5000');
         }
 
         return self::$instance;
