@@ -8,8 +8,13 @@ $userId = Session::userId();
 $db = Database::getInstance();
 $stats = TokenSystem::getUserStats($userId);
 $sort = $_GET['sort'] ?? 'value';
+$page = max(1, (int)($_GET['page'] ?? 1));
+$perPage = 20;
 $summary = TradingEngine::getPortfolioSummary($userId, $sort);
-$holdings = $summary['holdings'] ?? [];
+$allHoldings = $summary['holdings'] ?? [];
+$totalHoldings = count($allHoldings);
+$totalPages = max(1, ceil($totalHoldings / $perPage));
+$holdings = array_slice($allHoldings, ($page - 1) * $perPage, $perPage);
 
 // Get placed cards
 $stmt = $db->prepare("
@@ -225,6 +230,19 @@ include __DIR__ . '/layout/header.php';
                 </tbody>
             </table>
         </div>
+        <?php if ($totalPages > 1): ?>
+        <div class="pagination">
+            <?php
+            $start = max(1, $page - 2);
+            $end = min($totalPages, $page + 2);
+            if ($start > 1): ?><span class="page-link" style="background:transparent;border:none">…</span><?php endif;
+            for ($p = $start; $p <= $end; $p++):
+            ?>
+            <a href="?sort=<?= urlencode($sort) ?>&page=<?= $p ?>" class="page-link <?= $p === $page ? 'active' : '' ?>"><?= $p ?></a>
+            <?php endfor;
+            if ($end < $totalPages): ?><span class="page-link" style="background:transparent;border:none">…</span><?php endif; ?>
+        </div>
+        <?php endif; ?>
         <?php else: ?>
         <div class="empty-state">
             <p>📭 暂无持仓。去<a href="<?= url('/market.php') ?>">股市</a>买点股票，或者<a href="<?= url('/gacha.php') ?>">抽卡</a>试试运气！</p>
