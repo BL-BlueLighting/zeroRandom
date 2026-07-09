@@ -7,6 +7,31 @@
             <a href="?filter=unread" class="btn btn-sm <?= $filter === 'unread' ? 'btn-primary' : 'btn-outline' ?>">未读</a>
             <a href="?filter=read" class="btn btn-sm <?= $filter === 'read' ? 'btn-primary' : 'btn-outline' ?>">已读</a>
         </div>
+        <button class="btn btn-primary btn-sm" onclick="document.getElementById('composeBox').style.display=document.getElementById('composeBox').style.display==='none'?'block':'none'">✏️ 写消息</button>
+    </div>
+
+    <!-- Compose -->
+    <div id="composeBox" style="display:none;margin-bottom:16px">
+        <div class="admin-section">
+            <form method="POST" class="admin-form">
+                <input type="hidden" name="action" value="send">
+                <div class="form-row">
+                    <div class="form-group" style="flex:1">
+                        <label>收件人（用户名或ID）</label>
+                        <input type="text" name="to_user" required class="form-input" placeholder="输入用户名">
+                    </div>
+                    <div class="form-group" style="flex:2">
+                        <label>标题</label>
+                        <input type="text" name="title" required class="form-input" placeholder="消息标题">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>内容</label>
+                    <textarea name="content" rows="4" required class="form-input" placeholder="消息内容..."></textarea>
+                </div>
+                <button class="btn btn-primary">📨 发送</button>
+            </form>
+        </div>
     </div>
 
     <?php if (empty($messages)): ?>
@@ -24,6 +49,7 @@
             </div>
             <?php if (!$m['is_read']): ?>
             <form method="POST" style="margin-left:8px">
+                <input type="hidden" name="action" value="mark_read">
                 <input type="hidden" name="msg_id" value="<?= $m['id'] ?>">
                 <button class="btn btn-xs btn-outline">标为已读</button>
             </form>

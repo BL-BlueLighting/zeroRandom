@@ -16,14 +16,38 @@ Session::requireAuth();
 $userId = Session::userId();
 $db = Database::getInstance();
 
-// Mark as read
+// Mark as read or send message
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $msgId = (int)($_POST['msg_id'] ?? 0);
-    if ($msgId) {
-        $db->prepare("UPDATE user_messages SET is_read = 1 WHERE id = ? AND to_user = ?")->execute([$msgId, $userId]);
+    $action = $_POST['action'] ?? '';
+    if ($action === 'mark_read') {
+        $msgId = (int)($_POST['msg_id'] ?? 0);
+        if ($msgId) {
+            $db->prepare("UPDATE user_messages SET is_read = 1 WHERE id = ? AND to_user = ?")->execute([$msgId, $userId]);
+        }
+        header('Location: ' . url('/messages.php'));
+        exit;
     }
-    header('Location: ' . url('/messages.php'));
-    exit;
+    if ($action === 'send') {
+        $toUser = trim($_POST['to_user'] ?? '');
+        $title = trim($_POST['title'] ?? '');
+        $content = trim($_POST['content'] ?? '');
+        if ($toUser && $title && $content) {
+            $stmt = $db->prepare("SELECT id FROM users WHERE username = ? OR id = ?");
+            $stmt->execute([$toUser, is_numeric($toUser) ? (int)$toUser : 0]);
+            $target = $stmt->fetch();
+            if ($target && (int)$target['id'] !== $userId) {
+                $db->prepare("INSERT INTO user_messages (to_user, from_user, title, content) VALUES (?, ?, ?, ?)")
+                    ->execute([(int)$target['id'], Session::user()['username'] ?? 'unknown', $title, $content]);
+                Session::flash('success', '消息已发送！');
+            } else {
+                Session::flash('error', '接收方不存在或不能给自己发信。');
+            }
+        } else {
+            Session::flash('error', '请填写完整。');
+        }
+        header('Location: ' . url('/messages.php'));
+        exit;
+    }
 }
 
 $page = max(1, (int)($_GET['page'] ?? 1));
