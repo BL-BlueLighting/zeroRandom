@@ -5,6 +5,19 @@
  */
 require_once __DIR__ . '/helpers.php';
 
+// Kaleidoscope layer: check expiry and set session
+if (isset($_SESSION['user_id']) && ($_SESSION['layer'] ?? '') === 'kaleidoscope') {
+    try {
+        $__kdb = Database::getInstance();
+        $__kstmt = $__kdb->prepare("SELECT kaleidoscope_expires_at FROM users WHERE id = ?");
+        $__kstmt->execute([$_SESSION['user_id']]);
+        $__kexp = $__kstmt->fetchColumn();
+        if (!$__kexp || strtotime($__kexp) <= time()) {
+            $_SESSION['layer'] = 'default';
+        }
+    } catch (Exception $e) { $_SESSION['layer'] = 'default'; }
+}
+
 // Load user's number format preference into session
 if (isset($_SESSION['user_id']) && !isset($_SESSION['number_style'])) {
     try {
@@ -14,6 +27,11 @@ if (isset($_SESSION['user_id']) && !isset($_SESSION['number_style'])) {
         $__ns = $__stmt->fetchColumn();
         $_SESSION['number_style'] = $__ns ?: 'wan';
     } catch (Exception $e) { $_SESSION['number_style'] = 'wan'; }
+}
+
+// Handle layer switching via GET param
+if (isset($_GET['switch_kaleidoscope'])) {
+    $_SESSION['layer'] = 'kaleidoscope';
 }
 
 $__dataDir = dirname(defined('DB_PATH') ? DB_PATH : __DIR__ . '/data/oimanka.db');

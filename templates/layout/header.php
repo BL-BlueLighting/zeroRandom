@@ -6,13 +6,15 @@
 $currentUser = Session::user();
 $pageTitle = $pageTitle ?? 'zero Random';
 $currentUri = $_SERVER['REQUEST_URI'] ?? '/';
+$layer = $_SESSION['layer'] ?? 'default';
+$appName = $layer === 'kaleidoscope' ? KALEIDOSCOPE_NAME : 'zero Random';
 ?>
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-layer="<?= $layer ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($pageTitle) ?> - zero Random</title>
+    <title><?= htmlspecialchars($pageTitle) ?> - <?= $appName ?></title>
     <link rel="stylesheet" href="assets/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
@@ -21,7 +23,7 @@ $currentUri = $_SERVER['REQUEST_URI'] ?? '/';
     <div class="header-inner">
         <a href="<?= url('/') ?>" class="site-logo">
             <span class="logo-icon">🎰</span>
-            <span class="logo-text"><i>zero</i>Random</span>
+            <span class="logo-text"><?php if ($layer === 'kaleidoscope'): ?><i>zero</i>Random The Kaleidoscope<?php else: ?><i>zero</i>Random<?php endif; ?></span>
         </a>
         <nav class="site-nav">
             <a href="<?= url('/') ?>" class="nav-link <?= $currentUri === '/' ? 'active' : '' ?>">首页</a>
@@ -47,8 +49,8 @@ $currentUri = $_SERVER['REQUEST_URI'] ?? '/';
                     <a href="<?= url('/portfolio.php') ?>" class="nav-link <?= strpos($currentUri, '/portfolio.php') === 0 ? 'active' : '' ?>">
                         📦 持仓
                     </a>
-                    <span class="token-display" title="代币余额">
-                        🪙 <?= nf((float)$currentUser['token_balance'], 1) ?>
+                    <span class="token-display" title="<?= $layer === 'kaleidoscope' ? 'Kaleidoscope 代币' : '代币余额' ?>">
+                        <?= $layer === 'kaleidoscope' ? '🌀' : '🪙' ?> <?= nf($layer === 'kaleidoscope' ? TokenSystem::getKaleidoscopeBalance((int)$currentUser['id']) : (float)$currentUser['token_balance'], 1) ?>
                     </span>
                     <a href="<?= url('/profile.php') ?>" class="user-name"><?= htmlspecialchars($currentUser['username']) ?></a>
                     <?php
@@ -61,6 +63,17 @@ $currentUri = $_SERVER['REQUEST_URI'] ?? '/';
                         📬<?php if ($msgCount > 0): ?><span style="background:var(--red);color:#fff;border-radius:10px;padding:0 5px;font-size:11px;font-weight:700;margin-left:2px"><?= $msgCount ?></span><?php endif; ?>
                     </a>
                     <?php } catch (Exception $e) {} ?>
+                    <?php
+                    try {
+                        $__ksDb = Database::getInstance();
+                        $__ksExp = $__ksDb->query("SELECT kaleidoscope_expires_at FROM users WHERE id = {$currentUser['id']}")->fetchColumn();
+                        $__ksActive = $__ksExp && strtotime($__ksExp) > time();
+                    } catch (Exception $e) { $__ksActive = false; }
+                    if ($__ksActive && $layer === 'kaleidoscope'): ?>
+                    <a href="<?= url('/enter_kaleidoscope.php') ?>?action=switch_back" class="btn btn-sm btn-outline">🔙 返回默认</a>
+                    <?php elseif ($__ksActive): ?>
+                    <a href="<?= url('/') ?>?switch_kaleidoscope=1" class="btn btn-sm btn-outline" style="color:var(--accent)">🌌 天界</a>
+                    <?php endif; ?>
                     <?php $ojUrl = oj_url(); if ($ojUrl): ?>
                     <a href="<?= $ojUrl ?>" class="btn btn-sm btn-outline" target="_blank" title="返回OJ">↩ OJ</a>
                     <?php endif; ?>

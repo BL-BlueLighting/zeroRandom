@@ -344,6 +344,8 @@ class Database {
             "ALTER TABLE notifications ADD COLUMN reward_stock_quantity INTEGER DEFAULT 0",
             "ALTER TABLE users ADD COLUMN last_active_at DATETIME",
             "ALTER TABLE users ADD COLUMN number_style TEXT DEFAULT 'wan'",
+            "ALTER TABLE users ADD COLUMN kaleidoscope_balance REAL DEFAULT 0",
+            "ALTER TABLE users ADD COLUMN kaleidoscope_expires_at DATETIME",
         ];
         foreach ($columnMigrations as $sql) {
             try {

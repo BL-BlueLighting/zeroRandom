@@ -61,6 +61,15 @@
         <?php endif; ?>
     </section>
 
+    <!-- Kaleidoscope Entry (own profile only) -->
+    <?php if ($isOwner): ?>
+    <section class="section">
+        <h2 class="section-title">🌌 Kaleidoscope · 天界</h2>
+        <p class="text-muted" style="margin-bottom:12px">第二层市场，独立股市，独立代币</p>
+        <a href="<?= url('/enter_kaleidoscope.php') ?>" class="btn btn-primary">🌌 进入天界</a>
+    </section>
+    <?php endif; ?>
+
     <!-- Settings (own profile only) -->
     <?php if ($isOwner): ?>
     <section class="section">

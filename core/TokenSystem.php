@@ -195,4 +195,33 @@ class TokenSystem {
             LIMIT {$limit}
         ")->fetchAll();
     }
+
+    // ─── Kaleidoscope Balance ───
+
+    public static function getKaleidoscopeBalance(int $userId): float {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("SELECT kaleidoscope_balance FROM users WHERE id = ?");
+        $stmt->execute([$userId]);
+        return (float)($stmt->fetchColumn() ?: 0);
+    }
+
+    public static function addKaleidoscope(int $userId, float $amount): bool {
+        if ($amount <= 0) return false;
+        $db = Database::getInstance();
+        $db->prepare("UPDATE users SET kaleidoscope_balance = kaleidoscope_balance + ? WHERE id = ?")->execute([$amount, $userId]);
+        return true;
+    }
+
+    public static function spendKaleidoscope(int $userId, float $amount): bool {
+        if ($amount <= 0) return false;
+        $bal = self::getKaleidoscopeBalance($userId);
+        if ($bal < $amount) return false;
+        $db = Database::getInstance();
+        $db->prepare("UPDATE users SET kaleidoscope_balance = kaleidoscope_balance - ? WHERE id = ?")->execute([$amount, $userId]);
+        return true;
+    }
+
+    public static function canAffordKaleidoscope(int $userId, float $amount): bool {
+        return self::getKaleidoscopeBalance($userId) >= $amount;
+    }
 }

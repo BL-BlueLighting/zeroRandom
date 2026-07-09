@@ -5,6 +5,26 @@
 /* ── Reset & Base ── */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
+[data-layer="kaleidoscope"] {
+    --bg-primary: #f5f0eb;
+    --bg-secondary: #ede8e2;
+    --bg-card: #ffffff;
+    --bg-hover: #f0ece6;
+    --border: #d4cfc9;
+    --border-light: #c8c3bd;
+    --text-primary: #1a1a2e;
+    --text-secondary: #5a5a6a;
+    --text-muted: #9a9aaa;
+    --accent: #4da6ff;
+    --accent-hover: #3399ff;
+    --accent-gold: #d4a017;
+    --green: #2e8b57;
+    --red: #c0392b;
+    --green-bg: #e8f5e9;
+    --red-bg: #fbe9e7;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
 :root {
     --bg-primary: #0d0d0d;
     --bg-secondary: #141414;

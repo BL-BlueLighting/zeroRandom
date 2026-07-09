@@ -4,6 +4,15 @@
  * Loaded automatically via init_check.php after config.php.
  */
 
+/**
+ * Check if current session is in Kaleidoscope (天·界) layer.
+ */
+if (!function_exists('is_kaleidoscope')) {
+    function is_kaleidoscope(): bool {
+        return ($_SESSION['layer'] ?? 'default') === 'kaleidoscope';
+    }
+}
+
 if (!function_exists('nf')) {
     /**
      * Format numbers based on user's preferred style.

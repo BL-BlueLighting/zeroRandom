@@ -83,6 +83,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message = "✅ 最大持仓数已设为 {$val}";
     }
 
+    if ($postAction === 'set_kaleidoscope_time') {
+        platform_config_set('system', 'kaleidoscope_entry_start', (string)(int)($_POST['entry_start'] ?? 16));
+        platform_config_set('system', 'kaleidoscope_entry_end', (string)(int)($_POST['entry_end'] ?? 17));
+        $message = "✅ Kaleidoscope 入口时间已更新。";
+    }
+
     if ($postAction === 'bulk_edit_stocks') {
         $prefix = strtoupper(trim($_POST['bulk_prefix'] ?? ''));
         $action = $_POST['bulk_action'] ?? '';
@@ -749,6 +755,22 @@ include __DIR__ . '/layout/header.php';
                 <input type="hidden" name="action" value="set_max_holdings">
                 <label class="text-muted">最大持仓数：</label>
                 <input type="number" name="max_holdings" value="<?= (int)platform_config('system', 'max_holdings', '30000') ?>" min="0" class="form-input" style="width:120px">
+                <button class="btn btn-primary btn-sm">保存</button>
+            </form>
+        </section>
+
+                </section>
+
+        <!-- Kaleidoscope Config -->
+        <section class="admin-section">
+            <h2>🌌 Kaleidoscope 配置</h2>
+            <p class="text-muted">设置天·界入口开放时间</p>
+            <form method="POST" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+                <input type="hidden" name="action" value="set_kaleidoscope_time">
+                <label class="text-muted">入口开放：</label>
+                <input type="number" name="entry_start" value="<?= (int)platform_config('system', 'kaleidoscope_entry_start', '16') ?>" min="0" max="23" class="form-input" style="width:70px"> :00
+                <span class="text-muted">~</span>
+                <input type="number" name="entry_end" value="<?= (int)platform_config('system', 'kaleidoscope_entry_end', '17') ?>" min="0" max="23" class="form-input" style="width:70px"> :00
                 <button class="btn btn-primary btn-sm">保存</button>
             </form>
         </section>
