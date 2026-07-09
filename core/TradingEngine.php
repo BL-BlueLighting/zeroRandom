@@ -25,6 +25,9 @@ class TradingEngine {
         if (!$stock || !$stock['is_active']) {
             return ['success' => false, 'message' => '该股票不存在或已下架。'];
         }
+        if (($_SESSION['layer'] ?? 'default') === 'kaleidoscope' && $stock['adapter_name'] !== 'fake') {
+            return ['success' => false, 'message' => 'Kaleidoscope 模式下仅可交易天界股票。'];
+        }
         if (!empty($stock['limited_edition'])) {
             // Must already hold this limited card to buy more from stock page
             $holdDb = Database::getInstance();
@@ -152,6 +155,9 @@ class TradingEngine {
         $stock = StockEngine::getStock($stockId);
         if (!$stock || !$stock['is_active']) {
             return ['success' => false, 'message' => '该股票不存在或已下架。'];
+        }
+        if (($_SESSION['layer'] ?? 'default') === 'kaleidoscope' && $stock['adapter_name'] !== 'fake') {
+            return ['success' => false, 'message' => 'Kaleidoscope 模式下仅可交易天界股票。'];
         }
         if (!empty($stock['limited_edition'])) {
             return ['success' => false, 'message' => '绝版卡牌仅可在卡牌市场交易，无法直接买卖。'];

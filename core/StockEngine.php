@@ -53,6 +53,11 @@ class StockEngine {
             $params[] = $adapter;
         }
 
+        // Kaleidoscope: only fake stocks
+        if (($options['kaleidoscope'] ?? true) && isset($_SESSION['layer']) && $_SESSION['layer'] === 'kaleidoscope') {
+            $where[] = "adapter_name = 'fake'";
+        }
+
         $allowedSorts = ['current_price', 'price_change_pct', 'market_cap', 'name', 'rarity', 'volume_24h'];
         if (!in_array($sort, $allowedSorts)) {
             $sort = 'market_cap';
@@ -96,6 +101,11 @@ class StockEngine {
             $params[] = $adapter;
         }
 
+        // Kaleidoscope: only fake stocks
+        if (isset($_SESSION['layer']) && $_SESSION['layer'] === 'kaleidoscope') {
+            $where[] = "adapter_name = 'fake'";
+        }
+
         $sql = "SELECT COUNT(*) FROM stocks WHERE " . implode(' AND ', $where);
         $stmt = $db->prepare($sql);
         $stmt->execute($params);
@@ -107,8 +117,9 @@ class StockEngine {
      */
     public static function getCategories(): array {
         $db = Database::getInstance();
+        $extra = (isset($_SESSION['layer']) && $_SESSION['layer'] === 'kaleidoscope') ? " AND adapter_name = 'fake'" : '';
         return $db->query("
-            SELECT DISTINCT category FROM stocks WHERE is_active = 1 ORDER BY category
+            SELECT DISTINCT category FROM stocks WHERE is_active = 1{$extra} ORDER BY category
         ")->fetchAll(PDO::FETCH_COLUMN);
     }
 
@@ -186,15 +197,16 @@ class StockEngine {
      */
     public static function getMarketSummary(): array {
         $db = Database::getInstance();
+        $kf = (isset($_SESSION['layer']) && $_SESSION['layer'] === 'kaleidoscope') ? " AND adapter_name = 'fake'" : '';
 
-        $total = $db->query("SELECT COUNT(*) FROM stocks WHERE is_active = 1")->fetchColumn();
-        $totalCap = $db->query("SELECT COALESCE(SUM(market_cap), 0) FROM stocks WHERE is_active = 1")->fetchColumn();
-        $avgChange = $db->query("SELECT COALESCE(AVG(price_change_pct), 0) FROM stocks WHERE is_active = 1")->fetchColumn();
-        $gainers = $db->query("SELECT COUNT(*) FROM stocks WHERE is_active = 1 AND price_change_pct > 0")->fetchColumn();
-        $losers = $db->query("SELECT COUNT(*) FROM stocks WHERE is_active = 1 AND price_change_pct < 0")->fetchColumn();
+        $total = $db->query("SELECT COUNT(*) FROM stocks WHERE is_active = 1{$kf}")->fetchColumn();
+        $totalCap = $db->query("SELECT COALESCE(SUM(market_cap), 0) FROM stocks WHERE is_active = 1{$kf}")->fetchColumn();
+        $avgChange = $db->query("SELECT COALESCE(AVG(price_change_pct), 0) FROM stocks WHERE is_active = 1{$kf}")->fetchColumn();
+        $gainers = $db->query("SELECT COUNT(*) FROM stocks WHERE is_active = 1{$kf} AND price_change_pct > 0")->fetchColumn();
+        $losers = $db->query("SELECT COUNT(*) FROM stocks WHERE is_active = 1{$kf} AND price_change_pct < 0")->fetchColumn();
 
-        $topGainer = $db->query("SELECT symbol, name, price_change_pct FROM stocks WHERE is_active = 1 ORDER BY price_change_pct DESC LIMIT 1")->fetch();
-        $topLoser = $db->query("SELECT symbol, name, price_change_pct FROM stocks WHERE is_active = 1 ORDER BY price_change_pct ASC LIMIT 1")->fetch();
+        $topGainer = $db->query("SELECT symbol, name, price_change_pct FROM stocks WHERE is_active = 1{$kf} ORDER BY price_change_pct DESC LIMIT 1")->fetch();
+        $topLoser = $db->query("SELECT symbol, name, price_change_pct FROM stocks WHERE is_active = 1{$kf} ORDER BY price_change_pct ASC LIMIT 1")->fetch();
 
         return [
             'total_stocks' => (int)$total,
