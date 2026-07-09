@@ -61,6 +61,46 @@
         </form>
     </section>
 
+    <!-- Holdings List -->
+    <section class="admin-section">
+        <h2>📦 持仓明细 (<?= $hc ?> 项)</h2>
+        <?php if (!empty($holdRows)): ?>
+        <div class="stock-table-wrapper">
+            <table class="stock-table"><thead><tr>
+                <th>代码</th><th>名称</th><th>稀有度</th><th>数量</th><th>均价</th><th>现价</th><th>市值</th><th>盈亏</th>
+            </tr></thead><tbody>
+            <?php foreach ($holdRows as $h): ?>
+            <tr>
+                <td><span class="stock-symbol-table <?= $h['rarity'] ?>"><?= htmlspecialchars($h['symbol']) ?></span></td>
+                <td><a href="<?= url('/market_detail.php') ?>?id=<?= $h['stock_id'] ?>"><?= htmlspecialchars($h['stock_name']) ?></a></td>
+                <td><span class="rarity-badge <?= !empty($h['limited_edition']) ? 'limited' : $h['rarity'] ?>"><?= !empty($h['limited_edition']) ? '绝版' : (GachaEngine::RARITY_NAMES[$h['rarity']] ?? $h['rarity']) ?></span></td>
+                <td><?= $h['quantity'] ?></td>
+                <td>🪙 <?= number_format($h['avg_cost'], 2) ?></td>
+                <td>🪙 <?= number_format($h['current_price'], 2) ?></td>
+                <td>🪙 <?= number_format($h['market_value'], 2) ?></td>
+                <td class="<?= $h['profit_loss'] >= 0 ? 'text-green' : 'text-red' ?>"><?= $h['profit_loss'] >= 0 ? '+' : '' ?><?= number_format($h['profit_loss'], 2) ?></td>
+            </tr>
+            <?php endforeach; ?>
+            </tbody></table>
+        </div>
+        <?php if ($holdTotalPages > 1): ?>
+        <div class="pagination">
+            <?php
+            $start = max(1, $holdPage - 2);
+            $end = min($holdTotalPages, $holdPage + 2);
+            if ($start > 1): ?><span class="page-link" style="background:transparent;border:none">…</span><?php endif;
+            for ($p = $start; $p <= $end; $p++):
+            ?>
+            <a href="?id=<?= $targetId ?>&hold_page=<?= $p ?>" class="page-link <?= $p === $holdPage ? 'active' : '' ?>"><?= $p ?></a>
+            <?php endfor;
+            if ($end < $holdTotalPages): ?><span class="page-link" style="background:transparent;border:none">…</span><?php endif; ?>
+        </div>
+        <?php endif; ?>
+        <?php else: ?>
+        <p class="text-muted">无持仓</p>
+        <?php endif; ?>
+    </section>
+
     <!-- Clear Holdings -->
     <section class="admin-section">
         <h2>🗑️ 清空持仓</h2>

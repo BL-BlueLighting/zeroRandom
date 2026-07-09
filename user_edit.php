@@ -102,4 +102,20 @@ $txCount = $db->prepare("SELECT COUNT(*) FROM transactions WHERE user_id = ?");
 $txCount->execute([$targetId]);
 $tc = (int)$txCount->fetchColumn();
 
+// Holdings with pagination
+$holdPage = max(1, (int)($_GET['hold_page'] ?? 1));
+$holdPerPage = 20;
+$holdings = $db->prepare("
+    SELECT h.*, s.symbol, s.name as stock_name, s.rarity, s.limited_edition, s.current_price,
+           (h.quantity * s.current_price) as market_value,
+           ((s.current_price - h.avg_cost) * h.quantity) as profit_loss
+    FROM holdings h JOIN stocks s ON h.stock_id = s.id
+    WHERE h.user_id = ? AND h.quantity > 0
+    ORDER BY market_value DESC
+    LIMIT ? OFFSET ?
+");
+$holdings->execute([$targetId, $holdPerPage, ($holdPage - 1) * $holdPerPage]);
+$holdRows = $holdings->fetchAll();
+$holdTotalPages = max(1, ceil($hc / $holdPerPage));
+
 require_once __DIR__ . '/templates/user_edit.php';
