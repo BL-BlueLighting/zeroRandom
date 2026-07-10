@@ -22,12 +22,11 @@ $totalPages = max(1, ceil($totalHoldings / $perPage));
 $holdings = array_slice($allHoldings, ($page - 1) * $perPage, $perPage);
 
 // Get placed cards
-$ksFilter = $isKs ? " AND s.adapter_name = 'fake'" : '';
 $stmt = $db->prepare("
     SELECT cp.*, s.symbol, s.name as stock_name, s.current_price, s.price_change_pct, s.rarity, s.limited_edition
-    FROM card_placements cp
+    FROM " . ks_table("card_placements") . " cp
     JOIN stocks s ON cp.stock_id = s.id
-    WHERE cp.user_id = ?{$ksFilter}
+    WHERE cp.user_id = ?
     ORDER BY cp.slot
 ");
 $stmt->execute([$userId]);
@@ -52,12 +51,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $slot = (int)($_POST['slot'] ?? 1);
         if ($stockId && $slot >= 1 && $slot <= 6) {
             // Check user has this stock
-            $check = $db->prepare("SELECT quantity FROM holdings WHERE user_id = ? AND stock_id = ? AND quantity > 0");
+            $check = $db->prepare("SELECT quantity FROM " . ks_table("holdings") . " WHERE user_id = ? AND stock_id = ? AND quantity > 0");
             $check->execute([$userId, $stockId]);
             if ($check->fetch()) {
                 try {
                     $db->prepare("
-                        INSERT INTO card_placements (user_id, stock_id, slot)
+                        INSERT INTO " . ks_table("card_placements") . " (user_id, stock_id, slot)
                         VALUES (?, ?, ?)
                         ON CONFLICT(user_id, slot) DO UPDATE SET stock_id = excluded.stock_id
                     ")->execute([$userId, $stockId, $slot]);
@@ -70,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     if ($action === 'remove') {
         $slot = (int)($_POST['slot'] ?? 0);
-        $db->prepare("DELETE FROM card_placements WHERE user_id = ? AND slot = ?")->execute([$userId, $slot]);
+        $db->prepare("DELETE FROM " . ks_table("card_placements") . " WHERE user_id = ? AND slot = ?")->execute([$userId, $slot]);
         Session::flash('success', '卡牌已从展示位移除。');
     }
     header('Location: ' . url('/portfolio.php'));

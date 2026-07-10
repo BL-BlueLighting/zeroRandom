@@ -27,7 +27,7 @@ $metadata = $stock['metadata'] ?? [];
 $userHolding = null;
 if (Session::isLoggedIn()) {
     $db = Database::getInstance();
-    $stmt = $db->prepare("SELECT * FROM holdings WHERE user_id = ? AND stock_id = ?");
+    $stmt = $db->prepare("SELECT * FROM " . ks_table("holdings") . " WHERE user_id = ? AND stock_id = ?");
     $stmt->execute([Session::userId(), $stockId]);
     $userHolding = $stmt->fetch();
 }

@@ -346,15 +346,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($stock) {
                 try {
                     $db->beginTransaction();
-                    $hold = $db->prepare("SELECT * FROM holdings WHERE user_id = ? AND stock_id = ?");
+                    $hold = $db->prepare("SELECT * FROM " . ks_table("holdings") . " WHERE user_id = ? AND stock_id = ?");
                     $hold->execute([$targetUserId, $stockId]);
                     $h = $hold->fetch();
                     if ($h) {
                         $newQty = $h['quantity'] + $quantity;
                         $newCost = ($h['avg_cost'] * $h['quantity'] + $stock['current_price'] * $quantity) / $newQty;
-                        $db->prepare("UPDATE holdings SET quantity = ?, avg_cost = ? WHERE id = ?")->execute([$newQty, $newCost, $h['id']]);
+                        $db->prepare("UPDATE " . ks_table("holdings") . " SET quantity = ?, avg_cost = ? WHERE id = ?")->execute([$newQty, $newCost, $h['id']]);
                     } else {
-                        $db->prepare("INSERT INTO holdings (user_id, stock_id, quantity, avg_cost) VALUES (?, ?, ?, ?)")->execute([$targetUserId, $stockId, $quantity, $stock['current_price']]);
+                        $db->prepare("INSERT INTO " . ks_table("holdings") . " (user_id, stock_id, quantity, avg_cost) VALUES (?, ?, ?, ?)")->execute([$targetUserId, $stockId, $quantity, $stock['current_price']]);
                     }
                     if ($overwriteRarity) {
                         if ($customRarity === 'limited') {
