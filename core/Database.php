@@ -300,77 +300,15 @@ class Database {
                     UNIQUE(user_id, quest_id)
                 )
             ",
-            'ks_holdings' => "
-                CREATE TABLE IF NOT EXISTS ks_holdings (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id INTEGER NOT NULL,
-                    stock_id INTEGER NOT NULL,
-                    quantity INTEGER NOT NULL DEFAULT 0,
-                    avg_cost REAL NOT NULL,
-                    UNIQUE(user_id, stock_id)
-                )
-            ",
-            'ks_transactions' => "
-                CREATE TABLE IF NOT EXISTS ks_transactions (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id INTEGER NOT NULL,
-                    stock_id INTEGER,
-                    type TEXT NOT NULL,
-                    quantity INTEGER,
-                    price REAL,
-                    total_amount REAL,
-                    fee REAL DEFAULT 0.0,
-                    notes TEXT,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-                )
-            ",
-            'ks_gacha_logs' => "
-                CREATE TABLE IF NOT EXISTS ks_gacha_logs (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id INTEGER NOT NULL,
-                    stock_id INTEGER NOT NULL,
-                    rarity TEXT NOT NULL,
-                    pull_type TEXT DEFAULT 'single',
-                    cost REAL NOT NULL,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-                )
-            ",
-            'ks_card_placements' => "
-                CREATE TABLE IF NOT EXISTS ks_card_placements (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id INTEGER NOT NULL,
-                    stock_id INTEGER NOT NULL,
-                    slot INTEGER NOT NULL DEFAULT 1,
-                    placed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE(user_id, slot)
-                )
-            ",
-            'ks_card_market_listings' => "
-                CREATE TABLE IF NOT EXISTS ks_card_market_listings (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    seller_id INTEGER NOT NULL,
-                    stock_id INTEGER NOT NULL,
-                    quantity INTEGER NOT NULL DEFAULT 1,
-                    price REAL NOT NULL,
-                    status TEXT NOT NULL DEFAULT 'listed',
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    sold_at DATETIME,
-                    buyer_id INTEGER
-                )
-            ",
-            'ks_daily_checkins' => "
-                CREATE TABLE IF NOT EXISTS ks_daily_checkins (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id INTEGER NOT NULL,
-                    checkin_date TEXT NOT NULL,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE(user_id, checkin_date)
-                )
+            'ks_tables' => "
+                CREATE TABLE IF NOT EXISTS ks_holdings (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, stock_id INTEGER NOT NULL, quantity INTEGER NOT NULL DEFAULT 0, avg_cost REAL NOT NULL, UNIQUE(user_id, stock_id));
+                CREATE TABLE IF NOT EXISTS ks_transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, stock_id INTEGER, type TEXT NOT NULL, quantity INTEGER, price REAL, total_amount REAL, fee REAL DEFAULT 0.0, notes TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
+                CREATE TABLE IF NOT EXISTS ks_gacha_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, stock_id INTEGER NOT NULL, rarity TEXT NOT NULL, pull_type TEXT DEFAULT 'single', cost REAL NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
+                CREATE TABLE IF NOT EXISTS ks_card_placements (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, stock_id INTEGER NOT NULL, slot INTEGER NOT NULL DEFAULT 1, placed_at DATETIME DEFAULT CURRENT_TIMESTAMP, UNIQUE(user_id, slot));
+                CREATE TABLE IF NOT EXISTS ks_card_market_listings (id INTEGER PRIMARY KEY AUTOINCREMENT, seller_id INTEGER NOT NULL, stock_id INTEGER NOT NULL, quantity INTEGER NOT NULL DEFAULT 1, price REAL NOT NULL, status TEXT NOT NULL DEFAULT 'listed', created_at DATETIME DEFAULT CURRENT_TIMESTAMP, sold_at DATETIME, buyer_id INTEGER);
+                CREATE TABLE IF NOT EXISTS ks_daily_checkins (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, checkin_date TEXT NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, UNIQUE(user_id, checkin_date));
             ",
         ];
-
-        // Also remove duplicates from columnMigrations (they're here now)
-        $skipInColumnMigrations = ['ks_holdings', 'ks_transactions', 'ks_gacha_logs', 'ks_card_placements', 'ks_card_market_listings', 'ks_daily_checkins'];
 
         foreach ($migrations as $table => $sql) {
             try {
@@ -378,6 +316,16 @@ class Database {
                 $results[$table] = 'ok';
             } catch (PDOException $e) {
                 $results[$table] = 'error: ' . $e->getMessage();
+            }
+        }
+
+        // Handle multi-statement SQL (for ks_tables etc.)
+        foreach ($migrations as $table => $sql) {
+            if (strpos($sql, ';') !== false && $results[$table] === 'ok') {
+                $statements = array_filter(array_map('trim', explode(';', $sql)));
+                foreach ($statements as $stmt) {
+                    try { $db->exec($stmt); } catch (PDOException $e) {}
+                }
             }
         }
 

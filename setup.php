@@ -64,12 +64,7 @@ $expectedSchema = [
     'user_quests' => ['用户任务进度表', ['id', 'user_id', 'quest_id', 'progress', 'completed', 'completed_at']],
     'claimed_rewards' => ['领取记录表', ['id', 'user_id', 'notification_id', 'created_at']],
     'user_messages' => ['用户消息表', ['id', 'to_user', 'from_user', 'title', 'content', 'is_read', 'created_at']],
-    'ks_holdings' => ['天界持仓表', ['id', 'user_id', 'stock_id', 'quantity', 'avg_cost']],
-    'ks_transactions' => ['天界交易表', ['id', 'user_id', 'stock_id', 'type', 'quantity', 'price', 'total_amount', 'fee', 'notes', 'created_at']],
-    'ks_gacha_logs' => ['天界抽卡表', ['id', 'user_id', 'stock_id', 'rarity', 'pull_type', 'cost', 'created_at']],
-    'ks_card_placements' => ['天界卡牌放置表', ['id', 'user_id', 'stock_id', 'slot', 'placed_at']],
-    'ks_card_market_listings' => ['天界市场表', ['id', 'seller_id', 'stock_id', 'quantity', 'price', 'status', 'created_at', 'sold_at', 'buyer_id']],
-    'ks_daily_checkins' => ['天界签到表', ['id', 'user_id', 'checkin_date', 'created_at']],
+    'ks_tables' => ['天界数据表组', ['id']],
 ];
 
 // Check data dir writable
