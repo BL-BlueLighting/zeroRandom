@@ -2,7 +2,9 @@
 /**
  * OIManka - Rankings
  */
-$pageTitle = is_kaleidoscope() ? '天界排行榜' : '排行榜';
+$isKs = is_kaleidoscope();
+$ksIcon = $isKs ? '🌀' : '🪙';
+$pageTitle = $isKs ? '天界排行榜' : '排行榜';
 
 try {
     $leaderboard = TokenSystem::getLeaderboard(50);
@@ -15,8 +17,8 @@ include __DIR__ . '/layout/header.php';
 
 <div class="page-ranking">
     <div class="page-header">
-        <h1>🏆 排行榜</h1>
-        <p class="text-muted">按总资产排名（代币余额 + 持仓市值）</p>
+        <h1><?= $isKs ? '🌌 天界' : '🏆' ?> 排行榜</h1>
+        <p class="text-muted">按总资产排名（<?= $isKs ? 'SKYT余额' : '代币余额' ?> + 持仓市值）</p>
     </div>
 
     <?php if (!empty($leaderboard)): ?>
@@ -26,7 +28,7 @@ include __DIR__ . '/layout/header.php';
                 <tr>
                     <th>排名</th>
                     <th>用户</th>
-                    <th>代币余额</th>
+                    <th><?= $isKs ? 'SKYT余额' : '代币余额' ?></th>
                     <th>持仓市值</th>
                     <th>总资产</th>
                     <th>持仓数</th>
@@ -47,10 +49,10 @@ include __DIR__ . '/layout/header.php';
                         <a href="<?= url('/profile.php') ?>?id=<?= $u['id'] ?>" style="font-weight:600;color:inherit"><?= htmlspecialchars($u['username']) ?></a>
                         <?= $isMe ? '<span class="badge-me">我</span>' : '' ?>
                     </td>
-                    <td>🪙 <?= nf($u['token_balance'], 1) ?></td>
-                    <td>🪙 <?= nf($u['portfolio_value'], 2) ?></td>
+                    <td><?= $ksIcon ?> <?= nf($u['token_balance'], 1) ?></td>
+                    <td><?= $ksIcon ?> <?= nf($u['portfolio_value'], 2) ?></td>
                     <td class="td-price">
-                        <strong>🪙 <?= nf($u['net_worth'], 2) ?></strong>
+                        <strong><?= $ksIcon ?> <?= nf($u['net_worth'], 2) ?></strong>
                     </td>
                     <td><?= $u['unique_stocks'] ?></td>
                     <td><?= $u['total_pulls'] ?></td>

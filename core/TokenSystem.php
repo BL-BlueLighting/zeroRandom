@@ -177,14 +177,16 @@ class TokenSystem {
      */
     public static function getLeaderboard(int $limit = 50): array {
         $db = Database::getInstance();
+        $isKs = is_kaleidoscope();
+        $balanceCol = $isKs ? 'u.kaleidoscope_balance' : 'u.token_balance';
         return $db->query("
             SELECT
                 u.id,
                 u.username,
-                u.token_balance,
+                {$balanceCol} AS token_balance,
                 u.total_earned,
                 COALESCE(SUM(h.quantity * s.current_price), 0) as portfolio_value,
-                u.token_balance + COALESCE(SUM(h.quantity * s.current_price), 0) as net_worth,
+                {$balanceCol} + COALESCE(SUM(h.quantity * s.current_price), 0) as net_worth,
                 COUNT(DISTINCT h.stock_id) as unique_stocks,
                 (SELECT COUNT(*) FROM " . ks_table("gacha_logs") . " WHERE user_id = u.id) as total_pulls
             FROM users u
