@@ -73,7 +73,7 @@
             <tr>
                 <td><span class="stock-symbol-table <?= $h['rarity'] ?>"><?= htmlspecialchars($h['symbol']) ?></span></td>
                 <td><a href="<?= url('/market_detail.php') ?>?id=<?= $h['stock_id'] ?>"><?= htmlspecialchars($h['stock_name']) ?></a></td>
-                <td><span class="rarity-badge <?= !empty($h['limited_edition']) ? 'limited' : $h['rarity'] ?>"><?= !empty($h['limited_edition']) ? '绝版' : (GachaEngine::RARITY_NAMES[$h['rarity']] ?? $h['rarity']) ?></span></td>
+                <td><span class="rarity-badge <?= !empty($h['limited_edition']) ? 'limited' : $h['rarity'] ?>"><?= !empty($h['limited_edition']) ? '绝版' : (GachaEngine::rarityNames()[$h['rarity']] ?? $h['rarity']) ?></span></td>
                 <td><?= $h['quantity'] ?></td>
                 <td>🪙 <?= nf($h['avg_cost'], 2) ?></td>
                 <td>🪙 <?= nf($h['current_price'], 2) ?></td>

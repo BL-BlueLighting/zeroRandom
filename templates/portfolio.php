@@ -128,7 +128,7 @@ include __DIR__ . '/layout/header.php';
             <div class="placement-slot <?= $placed ? 'filled' : 'empty' ?>">
                 <?php if ($placed): ?>
                 <div class="ps-card">
-                    <span class="rarity-badge <?= !empty($placed['limited_edition']) ? 'limited' : $placed['rarity'] ?>"><?= !empty($placed['limited_edition']) ? '绝版' : (GachaEngine::RARITY_NAMES[$placed['rarity']] ?? $placed['rarity']) ?></span>
+                    <span class="rarity-badge <?= !empty($placed['limited_edition']) ? 'limited' : $placed['rarity'] ?>"><?= !empty($placed['limited_edition']) ? '绝版' : (GachaEngine::rarityNames()[$placed['rarity']] ?? $placed['rarity']) ?></span>
                     <div class="ps-symbol"><?= htmlspecialchars($placed['symbol']) ?></div>
                     <div class="ps-name"><?= htmlspecialchars($placed['stock_name']) ?></div>
                     <div class="ps-price"><?= $isKs ? '🌀' : '🪙' ?> <?= nf($placed['current_price'], 2) ?></div>
@@ -189,7 +189,7 @@ include __DIR__ . '/layout/header.php';
                             <span class="stock-symbol-table <?= $h['rarity'] ?>"><?= htmlspecialchars($h['symbol']) ?></span>
                         </td>
                         <td><a href="<?= url('/market_detail.php') ?>?id=<?= $h['stock_id'] ?>"><?= htmlspecialchars($h['stock_name']) ?></a></td>
-                        <td><span class="rarity-badge <?= !empty($h['limited_edition']) ? 'limited' : $h['rarity'] ?>"><?= !empty($h['limited_edition']) ? '绝版' : (GachaEngine::RARITY_NAMES[$h['rarity']] ?? $h['rarity']) ?></span></td>
+                        <td><span class="rarity-badge <?= !empty($h['limited_edition']) ? 'limited' : $h['rarity'] ?>"><?= !empty($h['limited_edition']) ? '绝版' : (GachaEngine::rarityNames()[$h['rarity']] ?? $h['rarity']) ?></span></td>
                         <td class="td-qty"><?= $h['quantity'] ?></td>
                         <td><?= $isKs ? '🌀' : '🪙' ?> <?= nf($h['avg_cost'], 2) ?></td>
                         <td><?= $isKs ? '🌀' : '🪙' ?> <?= nf($h['current_price'], 2) ?></td>

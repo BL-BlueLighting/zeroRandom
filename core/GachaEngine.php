@@ -54,6 +54,75 @@ class GachaEngine {
         'legendary' => '传说',
     ];
 
+    // ─── Kaleidoscope Rarity System ───
+
+    /** Kaleidoscope rarity weights */
+    const KS_RARITY_WEIGHTS = [
+        'deepseek' => 2.5,  // 传说级
+        'gemini'   => 5,    // 史诗级
+        'gpt'      => 10,   // 稀有级
+        'claude'   => 15,   // 普通级
+        'MiMo'     => 10,
+        'doubao seed' => 40,
+        'gemma'    => 2.5,
+        'GLM'      => 0.1,
+        'LongCat'  => 5,
+        'Qwen'     => 4,
+        'Hunyuan'  => 4,
+        'MiniMax'  => 1.9,
+    ];
+
+    const KS_RARITY_COLORS = [
+        'deepseek' => '#f59e0b',
+        'gemini'   => '#a855f7',
+        'gpt'      => '#4da6ff',
+        'claude'   => '#9ca3af',
+        'MiMo'     => '#2ecc71',
+        'doubao seed' => '#1a1a1a',
+        'gemma'    => '#00bcd4',
+        'GLM'      => '#ffffff',
+        'LongCat'  => 'linear-gradient(135deg, #fff, #2ecc71)',
+        'Qwen'     => 'linear-gradient(135deg, #a855f7, #fff)',
+        'Hunyuan'  => 'linear-gradient(135deg, #2ecc71, #fff)',
+        'MiniMax'  => 'linear-gradient(135deg, #e74c3c, #fff)',
+    ];
+
+    const KS_RARITY_NAMES = [
+        'deepseek' => 'DeepSeek',
+        'gemini'   => 'Gemini',
+        'gpt'      => 'GPT',
+        'claude'   => 'Claude',
+        'MiMo'     => 'MiMo',
+        'doubao seed' => 'Seed',
+        'gemma'    => 'Gemma',
+        'GLM'      => 'GLM',
+        'LongCat'  => 'LongCat',
+        'Qwen'     => 'Qwen',
+        'Hunyuan'  => 'Hunyuan',
+        'MiniMax'  => 'MiniMax',
+    ];
+
+    const KS_RARITY_ORDER = ['deepseek', 'gemini', 'gpt', 'claude', 'MiMo', 'doubao seed', 'gemma', 'GLM', 'LongCat', 'Qwen', 'Hunyuan', 'MiniMax'];
+
+    /** Kaleidoscope price change logic */
+    public static function ksPriceChange(string $rarity): array {
+        $prob = (float)(self::KS_RARITY_WEIGHTS[$rarity] ?? 10);
+        if ($prob >= 15) {
+            $upChance = max(1, 50 - $prob);
+            $upAmount = max(0.5, 15 - $prob);
+        } else {
+            $upChance = max(1, 100 - $prob);
+            $upAmount = max(0.5, 35 - $prob);
+        }
+        if ($upAmount <= 0) $upAmount = mt_rand(15, 60) / 10;
+        $up = mt_rand(1, 100) <= $upChance;
+        return ['up' => $up, 'pct' => round($upAmount, 1)];
+    }
+
+    public static function rarityNames(): array { return is_kaleidoscope() ? self::KS_RARITY_NAMES : self::RARITY_NAMES; }
+    public static function rarityColors(): array { return is_kaleidoscope() ? self::KS_RARITY_COLORS : self::RARITY_COLORS; }
+    public static function rarityOrder(): array { return is_kaleidoscope() ? self::KS_RARITY_ORDER : self::RARITY_ORDER; }
+
     /** Rarity order for admin display: 普通 > 稀有 > 史诗 > 传说 */
     const RARITY_ORDER = ['common', 'rare', 'epic', 'legendary'];
 
@@ -61,26 +130,23 @@ class GachaEngine {
      * Get current rarity weights (possibly overridden by admin).
      */
     public static function getRarityWeights(): array {
+        if (is_kaleidoscope()) return self::KS_RARITY_WEIGHTS;
         $db = Database::getInstance();
         try {
             $stmt = $db->prepare("SELECT rarity, weight FROM gacha_config WHERE date = ?");
             $stmt->execute([date('Y-m-d')]);
             $configs = $stmt->fetchAll();
-
             if (!empty($configs)) {
                 $weights = [];
                 foreach ($configs as $c) {
                     $weights[$c['rarity']] = (int)$c['weight'];
                 }
-                // Ensure all rarities have values
-                foreach (self::RARITY_ORDER as $r) {
+                foreach (self::rarityOrder() as $r) {
                     if (!isset($weights[$r])) $weights[$r] = self::DEFAULT_RARITY_WEIGHTS[$r] ?? 10;
                 }
                 return $weights;
             }
-        } catch (Exception $e) {
-            // Table might not exist, fall through to defaults
-        }
+        } catch (Exception $e) {}
         return self::DEFAULT_RARITY_WEIGHTS;
     }
 
@@ -216,8 +282,8 @@ class GachaEngine {
                 'symbol' => $stock['symbol'],
                 'name' => $stock['name'],
                 'rarity' => $rarity,
-                'rarity_name' => self::RARITY_NAMES[$rarity],
-                'rarity_color' => self::RARITY_COLORS[$rarity],
+                'rarity_name' => self::rarityNames()[$rarity],
+                'rarity_color' => self::rarityColors()[$rarity],
                 'price' => (float)$stock['current_price'],
                 'category' => $stock['category'],
             ];
@@ -486,7 +552,7 @@ class GachaEngine {
             // Limited pool: only 35% chance to actually draw
             if ($isLimited && !$forceLegendary) {
                 if (mt_rand(1, 100) > 5) {
-                    $rarityName = self::RARITY_NAMES[$rarity] ?? $rarity;
+                    $rarityName = self::rarityNames()[$rarity] ?? $rarity;
                     $results[] = [
                         'id' => 0, 'symbol' => '💨', 'name' => "Punlucky 没有抽中 [{$rarityName}]",
                         'rarity' => $rarity, 'rarity_name' => '未中', 'rarity_color' => '#666',
@@ -514,8 +580,8 @@ class GachaEngine {
                 'symbol' => $stock['symbol'] ?? '?',
                 'name' => $stock['name'] ?? '?',
                 'rarity' => $rarity,
-                'rarity_name' => self::RARITY_NAMES[$rarity] ?? 'Common',
-                'rarity_color' => self::RARITY_COLORS[$rarity] ?? '#aaa',
+                'rarity_name' => self::rarityNames()[$rarity] ?? 'Common',
+                'rarity_color' => self::rarityColors()[$rarity] ?? '#aaa',
                 'price' => (float)($stock['current_price'] ?? 0),
             ];
         }

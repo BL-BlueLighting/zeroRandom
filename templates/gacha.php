@@ -82,9 +82,9 @@ include __DIR__ . '/layout/header.php';
         <h3>📊 今日概率</h3>
         <?php $weights = GachaEngine::getRarityWeights(); ?>
         <div class="prob-grid">
-            <?php foreach (GachaEngine::RARITY_ORDER as $rarity): ?>
+            <?php foreach (GachaEngine::rarityOrder() as $rarity): ?>
             <div class="prob-item">
-                <span class="rarity-badge <?= $rarity ?>"><?= GachaEngine::RARITY_NAMES[$rarity] ?></span>
+                <span class="rarity-badge <?= $rarity ?>"><?= GachaEngine::rarityNames()[$rarity] ?></span>
                 <div class="prob-bar">
                     <div class="prob-fill <?= $rarity ?>" style="width: <?= $weights[$rarity] ?? 10 ?>%"></div>
                 </div>
@@ -107,7 +107,7 @@ include __DIR__ . '/layout/header.php';
         <div class="history-list">
             <?php foreach ($history as $h): ?>
             <div class="history-item">
-                <span class="rarity-badge small <?= $h['rarity'] ?>"><?= GachaEngine::RARITY_NAMES[$h['rarity']] ?? $h['rarity'] ?></span>
+                <span class="rarity-badge small <?= $h['rarity'] ?>"><?= GachaEngine::rarityNames()[$h['rarity']] ?? $h['rarity'] ?></span>
                 <span class="hi-name"><?= htmlspecialchars($h['stock_name']) ?></span>
                 <span class="hi-symbol"><?= htmlspecialchars($h['symbol']) ?></span>
                 <span class="hi-type"><?= $h['pull_type'] === 'hundred' ? '💫百连' : ($h['pull_type'] === 'multi' ? '🎰十连' : '🎲单抽') ?></span>

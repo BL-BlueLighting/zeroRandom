@@ -74,7 +74,7 @@ include __DIR__ . '/layout/header.php';
                 <?php foreach ($gainers as $s): ?>
                 <a href="./market_detail.php?id=<?= $s['id'] ?>" class="stock-mini-item">
                     <div class="stock-mini-header">
-                        <span class="rarity-badge small <?= !empty($s['limited_edition']) ? 'limited' : $s['rarity'] ?>"><?= !empty($s['limited_edition']) ? '绝版' : (GachaEngine::RARITY_NAMES[$s['rarity']] ?? $s['rarity']) ?></span>
+                        <span class="rarity-badge small <?= !empty($s['limited_edition']) ? 'limited' : $s['rarity'] ?>"><?= !empty($s['limited_edition']) ? '绝版' : (GachaEngine::rarityNames()[$s['rarity']] ?? $s['rarity']) ?></span>
                         <span class="stock-symbol <?= $s['rarity'] ?>"><?= htmlspecialchars($s['symbol']) ?></span>
                         <span class="stock-name"><?= htmlspecialchars($s['name']) ?></span>
                     </div>
@@ -96,7 +96,7 @@ include __DIR__ . '/layout/header.php';
                 <?php foreach ($losers as $s): ?>
                 <a href="./market_detail.php?id=<?= $s['id'] ?>" class="stock-mini-item">
                     <div class="stock-mini-header">
-                        <span class="rarity-badge small <?= !empty($s['limited_edition']) ? 'limited' : $s['rarity'] ?>"><?= !empty($s['limited_edition']) ? '绝版' : (GachaEngine::RARITY_NAMES[$s['rarity']] ?? $s['rarity']) ?></span>
+                        <span class="rarity-badge small <?= !empty($s['limited_edition']) ? 'limited' : $s['rarity'] ?>"><?= !empty($s['limited_edition']) ? '绝版' : (GachaEngine::rarityNames()[$s['rarity']] ?? $s['rarity']) ?></span>
                         <span class="stock-symbol <?= $s['rarity'] ?>"><?= htmlspecialchars($s['symbol']) ?></span>
                         <span class="stock-name"><?= htmlspecialchars($s['name']) ?></span>
                     </div>
@@ -120,7 +120,7 @@ include __DIR__ . '/layout/header.php';
             <?php foreach ($topStocks as $s): ?>
             <a href="./market_detail.php?id=<?= $s['id'] ?>" class="stock-mini-item">
                 <div class="stock-mini-header">
-                    <span class="rarity-badge <?= !empty($s['limited_edition']) ? 'limited' : $s['rarity'] ?>"><?= !empty($s['limited_edition']) ? '绝版' : (GachaEngine::RARITY_NAMES[$s['rarity']] ?? $s['rarity']) ?></span>
+                    <span class="rarity-badge <?= !empty($s['limited_edition']) ? 'limited' : $s['rarity'] ?>"><?= !empty($s['limited_edition']) ? '绝版' : (GachaEngine::rarityNames()[$s['rarity']] ?? $s['rarity']) ?></span>
                     <span class="stock-symbol"><?= htmlspecialchars($s['symbol']) ?></span>
                     <span class="stock-name"><?= htmlspecialchars($s['name']) ?></span>
                 </div>

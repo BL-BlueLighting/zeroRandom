@@ -114,25 +114,31 @@ class AutoJob {
      */
     private static function doRefreshPrices(): void {
         $db = Database::getInstance();
+        $isKs = is_kaleidoscope();
 
         $rarityChance = ['legendary' => 100, 'epic' => 50, 'rare' => 25, 'common' => 10];
         $allStocks = $db->query("SELECT id, current_price, rarity, limited_edition FROM stocks WHERE is_active = 1")->fetchAll();
         $update = $db->prepare("UPDATE stocks SET prev_price = current_price, current_price = ROUND(?, 2), price_change_pct = ROUND((? - current_price) / current_price * 100, 2) WHERE id = ?");
 
         foreach ($allStocks as $s) {
-            // 绝版: 100% up, 20~30%
             if (!empty($s['limited_edition'])) {
                 $pct = mt_rand(20, 30);
                 $newPrice = round((float)$s['current_price'] * (1 + $pct / 100), 2);
                 if ($newPrice > 0) { $update->execute([$newPrice, $newPrice, $s['id']]); }
                 continue;
             }
-            $r = $s['rarity'] ?: 'common';
-            $upChance = $rarityChance[$r] ?? 10;
-            $up = mt_rand(1, 100) <= $upChance;
-            $pct = mt_rand(2, 17);
-            $change = $up ? $pct : -$pct;
-            $newPrice = round((float)$s['current_price'] * (1 + $change / 100), 2);
+            if ($isKs) {
+                $change = GachaEngine::ksPriceChange($s['rarity'] ?: 'claude');
+                $pct = $change['pct'];
+                $newPrice = round((float)$s['current_price'] * (1 + ($change['up'] ? $pct : -$pct) / 100), 2);
+            } else {
+                $r = $s['rarity'] ?: 'common';
+                $upChance = $rarityChance[$r] ?? 10;
+                $up = mt_rand(1, 100) <= $upChance;
+                $pct = mt_rand(2, 17);
+                $change = $up ? $pct : -$pct;
+                $newPrice = round((float)$s['current_price'] * (1 + $change / 100), 2);
+            }
             if ($newPrice > 0) {
                 $update->execute([$newPrice, $newPrice, $s['id']]);
             }

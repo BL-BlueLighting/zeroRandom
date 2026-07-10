@@ -534,9 +534,9 @@ include __DIR__ . '/layout/header.php';
             <form method="POST" class="admin-form">
                 <input type="hidden" name="action" value="set_weights">
                 <div class="form-row">
-                    <?php foreach (GachaEngine::RARITY_ORDER as $rarity): ?>
+                    <?php foreach (GachaEngine::rarityOrder() as $rarity): ?>
                     <div class="form-group">
-                        <label><span class="rarity-badge <?= $rarity ?>"><?= GachaEngine::RARITY_NAMES[$rarity] ?></span></label>
+                        <label><span class="rarity-badge <?= $rarity ?>"><?= GachaEngine::rarityNames()[$rarity] ?></span></label>
                         <input type="number" name="w_<?= $rarity ?>" value="<?= $currentWeights[$rarity] ?? 10 ?>"
                                min="0" max="100" class="form-input" style="width:80px"><span class="text-muted">%</span>
                     </div>

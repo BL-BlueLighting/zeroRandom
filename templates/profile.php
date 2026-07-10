@@ -23,7 +23,7 @@
         <?php foreach ($cards as $c): ?>
             <a href="<?= url('/market_detail.php') ?>?id=<?= $c['stock_id'] ?>" class="stock-mini-item">
                 <div class="stock-mini-header">
-                    <span class="rarity-badge small <?= $c['rarity'] ?>"><?= GachaEngine::RARITY_NAMES[$c['rarity']] ?? $c['rarity'] ?></span>
+                    <span class="rarity-badge small <?= $c['rarity'] ?>"><?= GachaEngine::rarityNames()[$c['rarity']] ?? $c['rarity'] ?></span>
                     <span class="stock-symbol <?= $c['rarity'] ?>"><?= htmlspecialchars($c['symbol']) ?></span>
                     <span class="stock-name"><?= htmlspecialchars($c['stock_name']) ?></span>
                 </div>

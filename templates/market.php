@@ -132,7 +132,7 @@ include __DIR__ . '/layout/header.php';
                     </td>
                     <td>
                         <span class="rarity-badge <?= !empty($s['limited_edition']) ? 'limited' : $s['rarity'] ?>">
-                            <?= !empty($s['limited_edition']) ? '绝版' : (GachaEngine::RARITY_NAMES[$s['rarity']] ?? $s['rarity']) ?>
+                            <?= !empty($s['limited_edition']) ? '绝版' : (GachaEngine::rarityNames()[$s['rarity']] ?? $s['rarity']) ?>
                         </span>
                     </td>
                     <td class="td-price">🪙 <?= nf($s['current_price'], 2) ?></td>

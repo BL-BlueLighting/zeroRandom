@@ -42,7 +42,7 @@ include __DIR__ . '/layout/header.php';
         <div class="sdh-left">
             <div class="sdh-title-row">
                 <span class="rarity-badge large <?= !empty($stock['limited_edition']) ? 'limited' : $stock['rarity'] ?>">
-                    <?= !empty($stock['limited_edition']) ? '绝版' : (GachaEngine::RARITY_NAMES[$stock['rarity']] ?? $stock['rarity']) ?>
+                    <?= !empty($stock['limited_edition']) ? '绝版' : (GachaEngine::rarityNames()[$stock['rarity']] ?? $stock['rarity']) ?>
                 </span>
                 <h1>
                     <span class="stock-symbol-big"><?= htmlspecialchars($stock['symbol']) ?></span>
