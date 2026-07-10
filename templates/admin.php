@@ -85,6 +85,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message = "✅ 最大持仓数已设为 {$val}";
     }
 
+    if ($postAction === 'convert_ks_rarities') {
+        $map = ['common'=>'claude','rare'=>'gpt','epic'=>'gemini','legendary'=>'deepseek'];
+        $count = 0;
+        foreach ($map as $old => $new) {
+            $db->prepare("UPDATE stocks SET rarity = ? WHERE adapter_name = 'fake' AND rarity = ?")->execute([$new, $old]);
+            $count += $db->query("SELECT changes()")->fetchColumn();
+        }
+        $message = "✅ 已转换 {$count} 支天界股票的稀有度。";
+    }
+
     if ($postAction === 'set_kaleidoscope_time') {
         platform_config_set('system', 'kaleidoscope_entry_start', (string)(int)($_POST['entry_start'] ?? 16));
         platform_config_set('system', 'kaleidoscope_entry_end', (string)(int)($_POST['entry_end'] ?? 17));
@@ -776,6 +786,10 @@ include __DIR__ . '/layout/header.php';
                 <span class="text-muted">~</span>
                 <input type="number" name="entry_end" value="<?= (int)platform_config('system', 'kaleidoscope_entry_end', '17') ?>" min="0" max="23" class="form-input" style="width:70px"> :00
                 <button class="btn btn-primary btn-sm">保存</button>
+            </form>
+            <form method="POST" style="margin-top:8px" onsubmit="return confirm('将天界股票稀有度转换为 AI 模型体系？')">
+                <input type="hidden" name="action" value="convert_ks_rarities">
+                <button class="btn btn-accent btn-sm">🔄 转换稀有度 (普通→Claude, 稀有→GPT, 史诗→Gemini, 传说→DeepSeek)</button>
             </form>
         </section>
 
