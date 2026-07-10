@@ -118,7 +118,7 @@ include __DIR__ . '/layout/header.php';
                 <tr class="stock-row" data-href="<?= url('/market_detail.php') ?>?id=<?= $s['id'] ?>">
                     <td class="td-rank"><?= ($page - 1) * $perPage + $i + 1 ?></td>
                     <td>
-                        <span class="stock-symbol-table <?= $s['rarity'] ?>">
+                        <span class="stock-symbol-table <?= GachaEngine::rarityClass($s[\'rarity\']) ?>">
                             <?= htmlspecialchars($s['symbol']) ?>
                         </span>
                     </td>
@@ -131,8 +131,8 @@ include __DIR__ . '/layout/header.php';
                         <span class="category-badge"><?= htmlspecialchars($s['category']) ?></span>
                     </td>
                     <td>
-                        <span class="rarity-badge <?= !empty($s['limited_edition']) ? 'limited' : $s['rarity'] ?>">
-                            <?= !empty($s['limited_edition']) ? '绝版' : (GachaEngine::rarityNames()[$s['rarity']] ?? $s['rarity']) ?>
+                        <span class="rarity-badge <?= !empty($s['limited_edition']) ? 'limited' : GachaEngine::rarityClass($s[\'rarity\']) ?>">
+                            <?= !empty($s['limited_edition']) ? '绝版' : (GachaEngine::rarityNames()[GachaEngine::rarityClass($s[\'rarity\'])] ?? GachaEngine::rarityClass($s[\'rarity\'])) ?>
                         </span>
                     </td>
                     <td class="td-price">🪙 <?= nf($s['current_price'], 2) ?></td>

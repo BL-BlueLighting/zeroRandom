@@ -58,51 +58,27 @@ class GachaEngine {
 
     /** Kaleidoscope rarity weights */
     const KS_RARITY_WEIGHTS = [
-        'deepseek' => 2.5,  // 传说级
-        'gemini'   => 5,    // 史诗级
-        'gpt'      => 10,   // 稀有级
-        'claude'   => 15,   // 普通级
-        'MiMo'     => 10,
-        'doubao seed' => 40,
-        'gemma'    => 2.5,
-        'GLM'      => 0.1,
-        'LongCat'  => 5,
-        'Qwen'     => 4,
-        'Hunyuan'  => 4,
-        'MiniMax'  => 1.9,
+        'deepseek' => 2.5,  'gemini'=>5, 'gpt'=>10, 'claude'=>15,
+        'MiMo'=>10, 'doubao-seed'=>40, 'gemma'=>2.5, 'GLM'=>0.1,
+        'LongCat'=>5, 'Qwen'=>4, 'Hunyuan'=>4, 'MiniMax'=>1.9,
     ];
 
     const KS_RARITY_COLORS = [
-        'deepseek' => '#f59e0b',
-        'gemini'   => '#a855f7',
-        'gpt'      => '#4da6ff',
-        'claude'   => '#9ca3af',
-        'MiMo'     => '#2ecc71',
-        'doubao seed' => '#1a1a1a',
-        'gemma'    => '#00bcd4',
-        'GLM'      => '#ffffff',
-        'LongCat'  => 'linear-gradient(135deg, #fff, #2ecc71)',
-        'Qwen'     => 'linear-gradient(135deg, #a855f7, #fff)',
-        'Hunyuan'  => 'linear-gradient(135deg, #2ecc71, #fff)',
-        'MiniMax'  => 'linear-gradient(135deg, #e74c3c, #fff)',
+        'deepseek'=>'#f59e0b','gemini'=>'#a855f7','gpt'=>'#4da6ff','claude'=>'#9ca3af',
+        'MiMo'=>'#2ecc71','doubao-seed'=>'#1a1a1a','gemma'=>'#00bcd4','GLM'=>'#ffffff',
+        'LongCat'=>'linear-gradient(135deg,#fff,#2ecc71)',
+        'Qwen'=>'linear-gradient(135deg,#a855f7,#fff)',
+        'Hunyuan'=>'linear-gradient(135deg,#2ecc71,#fff)',
+        'MiniMax'=>'linear-gradient(135deg,#e74c3c,#fff)',
     ];
 
     const KS_RARITY_NAMES = [
-        'deepseek' => 'DeepSeek',
-        'gemini'   => 'Gemini',
-        'gpt'      => 'GPT',
-        'claude'   => 'Claude',
-        'MiMo'     => 'MiMo',
-        'doubao seed' => 'Seed',
-        'gemma'    => 'Gemma',
-        'GLM'      => 'GLM',
-        'LongCat'  => 'LongCat',
-        'Qwen'     => 'Qwen',
-        'Hunyuan'  => 'Hunyuan',
-        'MiniMax'  => 'MiniMax',
+        'deepseek'=>'DeepSeek','gemini'=>'Gemini','gpt'=>'GPT','claude'=>'Claude',
+        'MiMo'=>'MiMo','doubao-seed'=>'Seed','gemma'=>'Gemma','GLM'=>'GLM',
+        'LongCat'=>'LongCat','Qwen'=>'Qwen','Hunyuan'=>'Hunyuan','MiniMax'=>'MiniMax',
     ];
 
-    const KS_RARITY_ORDER = ['deepseek', 'gemini', 'gpt', 'claude', 'MiMo', 'doubao seed', 'gemma', 'GLM', 'LongCat', 'Qwen', 'Hunyuan', 'MiniMax'];
+    const KS_RARITY_ORDER = ['deepseek','gemini','gpt','claude','MiMo','doubao-seed','gemma','GLM','LongCat','Qwen','Hunyuan','MiniMax'];
 
     /** Kaleidoscope price change logic */
     public static function ksPriceChange(string $rarity): array {
@@ -122,6 +98,7 @@ class GachaEngine {
     public static function rarityNames(): array { return is_kaleidoscope() ? self::KS_RARITY_NAMES : self::RARITY_NAMES; }
     public static function rarityColors(): array { return is_kaleidoscope() ? self::KS_RARITY_COLORS : self::RARITY_COLORS; }
     public static function rarityOrder(): array { return is_kaleidoscope() ? self::KS_RARITY_ORDER : self::RARITY_ORDER; }
+    public static function rarityClass(string $rarity): string { return str_replace(' ', '-', $rarity); }
 
     /** Rarity order for admin display: 普通 > 稀有 > 史诗 > 传说 */
     const RARITY_ORDER = ['common', 'rare', 'epic', 'legendary'];

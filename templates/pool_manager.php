@@ -29,7 +29,7 @@
                 <?php
                 $stocks = PoolEngine::getPoolStocks($pool['id']);
                 foreach (array_slice($stocks, 0, 80) as $s):
-                    $rarity = $s['rarity'] ?? 'common';
+                    $rarity = GachaEngine::rarityClass($s[\'rarity\']) ?? 'common';
                 ?>
                 <span class="rarity-badge small <?= $rarity ?>" style="font-size:10px;padding:1px 5px"><?= htmlspecialchars($s['symbol']) ?></span>
                 <?php endforeach; ?>

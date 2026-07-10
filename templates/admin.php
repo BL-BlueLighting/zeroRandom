@@ -247,7 +247,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         if ($newPrice > 0) { $update->execute([$newPrice, $newPrice, $s['id']]); $count['limited']++; }
                         continue;
                     }
-                    $r = $s['rarity'] ?: 'common';
+                    $r = GachaEngine::rarityClass($s[\'rarity\']) ?: 'common';
                     $upChance = $rarityChance[$r] ?? 10;
                     $up = mt_rand(1, 100) <= $upChance;
                     $pct = mt_rand(2, 17);
@@ -278,7 +278,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         if ($newPrice > 0) { $update->execute([$newPrice, $newPrice, $s['id']]); $count['limited']++; }
                         continue;
                     }
-                $r = $s['rarity'] ?: 'common';
+                $r = GachaEngine::rarityClass($s[\'rarity\']) ?: 'common';
                 $upChance = $rarityChance[$r] ?? 10;
                 $up = mt_rand(1, 100) <= $upChance;
                 $pct = mt_rand(2, 17);

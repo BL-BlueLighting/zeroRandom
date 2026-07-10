@@ -21,7 +21,7 @@
         <?php foreach ($listings as $l): ?>
         <tr>
             <td><strong><?= htmlspecialchars($l['symbol']) ?></strong> <?= htmlspecialchars($l['stock_name']) ?></td>
-            <td><span class="rarity-badge small <?= !empty($l['limited_edition']) ? 'limited' : $l['rarity'] ?>"><?= !empty($l['limited_edition']) ? '绝版' : (GachaEngine::rarityNames()[$l['rarity']] ?? $l['rarity']) ?></span></td>
+            <td><span class="rarity-badge small <?= !empty($l['limited_edition']) ? 'limited' : GachaEngine::rarityClass($l[\'rarity\']) ?>"><?= !empty($l['limited_edition']) ? '绝版' : (GachaEngine::rarityNames()[GachaEngine::rarityClass($l[\'rarity\'])] ?? GachaEngine::rarityClass($l[\'rarity\'])) ?></span></td>
             <td><?= $l['quantity'] ?></td>
             <td>🪙 <?= nf($l['price'], 2) ?></td>
             <td class="text-muted">🪙 <?= nf($l['current_price'], 2) ?></td>

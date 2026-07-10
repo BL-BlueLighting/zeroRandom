@@ -107,7 +107,7 @@ include __DIR__ . '/layout/header.php';
         <div class="history-list">
             <?php foreach ($history as $h): ?>
             <div class="history-item">
-                <span class="rarity-badge small <?= $h['rarity'] ?>"><?= GachaEngine::rarityNames()[$h['rarity']] ?? $h['rarity'] ?></span>
+                <span class="rarity-badge small <?= GachaEngine::rarityClass($h[\'rarity\']) ?>"><?= GachaEngine::rarityNames()[GachaEngine::rarityClass($h[\'rarity\'])] ?? GachaEngine::rarityClass($h[\'rarity\']) ?></span>
                 <span class="hi-name"><?= htmlspecialchars($h['stock_name']) ?></span>
                 <span class="hi-symbol"><?= htmlspecialchars($h['symbol']) ?></span>
                 <span class="hi-type"><?= $h['pull_type'] === 'hundred' ? '💫百连' : ($h['pull_type'] === 'multi' ? '🎰十连' : '🎲单抽') ?></span>

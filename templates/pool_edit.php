@@ -51,7 +51,7 @@
                                <?= in_array($s['id'], $poolStockIds) ? 'checked' : '' ?>
                                onchange="updateCount(); this.parentElement.style.borderColor=this.checked?'var(--accent)':'var(--border)'"
                                style="accent-color:var(--accent)">
-                        <span class="rarity-badge small <?= !empty($s['limited_edition']) ? 'limited' : ($s['rarity'] ?: 'common') ?>" style="font-size:9px;padding:0 4px"><?= !empty($s['limited_edition']) ? '绝版' : (GachaEngine::rarityNames()[$s['rarity']] ?? $s['rarity']) ?></span>
+                        <span class="rarity-badge small <?= !empty($s['limited_edition']) ? 'limited' : (GachaEngine::rarityClass($s[\'rarity\']) ?: 'common') ?>" style="font-size:9px;padding:0 4px"><?= !empty($s['limited_edition']) ? '绝版' : (GachaEngine::rarityNames()[GachaEngine::rarityClass($s[\'rarity\'])] ?? GachaEngine::rarityClass($s[\'rarity\'])) ?></span>
                         <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60px" title="<?= htmlspecialchars($s['name']) ?>"><?= htmlspecialchars($s['symbol']) ?></span>
                     </label>
                     <?php endforeach; ?>
