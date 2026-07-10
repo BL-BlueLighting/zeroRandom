@@ -175,10 +175,12 @@ class GachaEngine {
         }
 
         // Check balance
-        if (!TokenSystem::canAfford($userId, $cost)) {
+        $isKs = is_kaleidoscope();
+        $unit = $isKs ? 'SKYT' : '代币';
+        if ($isKs ? !TokenSystem::canAffordKaleidoscope($userId, $cost) : !TokenSystem::canAfford($userId, $cost)) {
             return [
                 'success' => false,
-                'message' => '代币不足！需要 ' . $cost . ' 枚代币。',
+                'message' => "{$unit}不足！需要 {$cost} {$unit}。",
                 'results' => [],
             ];
         }
@@ -201,12 +203,15 @@ class GachaEngine {
         }
 
         // Deduct tokens
-        if (!TokenSystem::spend($userId, $cost, 'gacha_pull')) {
-            return [
-                'success' => false,
-                'message' => '代币扣除失败，请重试。',
-                'results' => [],
-            ];
+        $isKs = is_kaleidoscope();
+        if ($isKs) {
+            if (!TokenSystem::spendKaleidoscope($userId, $cost)) {
+                return ['success' => false, 'message' => 'SKYT 扣除失败。', 'results' => []];
+            }
+        } else {
+            if (!TokenSystem::spend($userId, $cost, 'gacha_pull')) {
+                return ['success' => false, 'message' => '代币扣除失败。', 'results' => []];
+            }
         }
 
         // Execute pulls
@@ -287,7 +292,7 @@ class GachaEngine {
             ),
             'cost' => $cost,
             'results' => $results,
-            'balance_remaining' => TokenSystem::getBalance($userId),
+            'balance_remaining' => is_kaleidoscope() ? TokenSystem::getKaleidoscopeBalance($userId) : TokenSystem::getBalance($userId),
             'pity_message' => $pityMessage,
             'guaranteed_legendary' => $guaranteedLegendary,
             'hundred_pull_count' => $type === 'hundred' ? ($pity100Count + 1) : null,
@@ -482,10 +487,14 @@ class GachaEngine {
             case 'hundred': $count = GACHA_HUNDRED_COUNT; $cost = GACHA_HUNDRED_COST; break;
             default:        $count = 1;                   $cost = GACHA_SINGLE_COST;  break;
         }
-        if (!TokenSystem::canAfford($userId, $cost)) {
-            return ['success' => false, 'message' => '代币不足！需要 ' . $cost . ' 枚代币。', 'results' => []];
+        $isKs = is_kaleidoscope();
+        $unit = $isKs ? 'SKYT' : '代币';
+        if ($isKs ? !TokenSystem::canAffordKaleidoscope($userId, $cost) : !TokenSystem::canAfford($userId, $cost)) {
+            return ['success' => false, 'message' => "{$unit}不足！需要 {$cost} {$unit}。", 'results' => []];
         }
-        if (!TokenSystem::spend($userId, $cost, 'gacha_pull')) {
+        if ($isKs && !TokenSystem::spendKaleidoscope($userId, $cost)) {
+            return ['success' => false, 'message' => 'SKYT 扣除失败。', 'results' => []];
+        } elseif (!$isKs && !TokenSystem::spend($userId, $cost, 'gacha_pull')) {
             return ['success' => false, 'message' => '代币扣除失败。', 'results' => []];
         }
 
@@ -563,7 +572,7 @@ class GachaEngine {
             ];
         }
 
-        $newBalance = TokenSystem::getBalance($userId);
+        $newBalance = is_kaleidoscope() ? TokenSystem::getKaleidoscopeBalance($userId) : TokenSystem::getBalance($userId);
         $pityMessage = null;
         if ($guaranteedLegendary) {
             $pityMessage = '🌟 百连抽保底触发！获得传说卡牌！';

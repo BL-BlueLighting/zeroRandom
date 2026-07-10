@@ -43,15 +43,15 @@ if ($lastAllin) {
     }
 }
 
-$balance = TokenSystem::getBalance($userId);
-// Keep ones digit, spend the rest
+$isKs = is_kaleidoscope();
+$balance = $isKs ? TokenSystem::getKaleidoscopeBalance($userId) : TokenSystem::getBalance($userId);
 $spendable = $balance - ($balance % 10);
-// Cap at 5,000,000
 $spendable = min($spendable, 5000000);
 $cost = GACHA_SINGLE_COST;
+$unit = $isKs ? 'SKYT' : '代币';
 
 if ($spendable < $cost) {
-    echo json_encode(['success' => false, 'message' => '代币不足，至少需要 ' . $cost . ' 枚代币才能梭哈。']);
+    echo json_encode(['success' => false, 'message' => "{$unit}不足，至少需要 {$cost} {$unit}才能梭哈。"]);
     exit;
 }
 
@@ -59,8 +59,11 @@ $count = floor($spendable / $cost);
 $totalCost = $count * $cost;
 
 // Deduct tokens directly
-$db->prepare("UPDATE users SET token_balance = token_balance - ?, total_spent = total_spent + ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
-    ->execute([$totalCost, $totalCost, $userId]);
+if ($isKs) {
+    $db->prepare("UPDATE users SET kaleidoscope_balance = kaleidoscope_balance - ? WHERE id = ?")->execute([$totalCost, $userId]);
+} else {
+    $db->prepare("UPDATE users SET token_balance = token_balance - ?, total_spent = total_spent + ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")->execute([$totalCost, $totalCost, $userId]);
+}
 
 $results = [];
 $legendaryCount = 0;
@@ -95,7 +98,7 @@ for ($i = 0; $i < $count; $i++) {
     ];
 }
 
-$newBalance = TokenSystem::getBalance($userId);
+$newBalance = $isKs ? TokenSystem::getKaleidoscopeBalance($userId) : TokenSystem::getBalance($userId);
 $msg = "梭哈完成！共抽 {$count} 次，消耗 {$totalCost} 代币。";
 if ($legendaryCount > 0) $msg .= " 🌟 获得 {$legendaryCount} 张传说卡牌！";
 

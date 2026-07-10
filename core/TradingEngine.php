@@ -48,11 +48,13 @@ class TradingEngine {
         $totalCost = $subtotal + $fee;
 
         // Check balance
-        if (!TokenSystem::canAfford($userId, $totalCost)) {
+        $isKs = is_kaleidoscope();
+        $unit = $isKs ? 'SKYT' : '代币';
+        if ($isKs ? !TokenSystem::canAffordKaleidoscope($userId, $totalCost) : !TokenSystem::canAfford($userId, $totalCost)) {
             return [
                 'success' => false,
                 'message' => sprintf(
-                    '代币不足！需要 %.2f 枚代币（含 %.2f 手续费），当前余额不足。',
+                    "{$unit}不足！需要 %.2f {$unit}（含 %.2f 手续费）。",
                     $totalCost, $fee
                 ),
             ];
@@ -63,12 +65,12 @@ class TradingEngine {
 
         try {
             // Deduct tokens (direct SQL, no nested transaction)
-            $balStmt = $db->prepare("SELECT token_balance FROM users WHERE id = ?");
-            $balStmt->execute([$userId]);
-            $bal = (float)$balStmt->fetchColumn();
-            if ($bal < $totalCost) throw new RuntimeException('代币不足');
-            $db->prepare("UPDATE users SET token_balance = token_balance - ?, total_spent = total_spent + ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
-                ->execute([$totalCost, $totalCost, $userId]);
+            $isKs = is_kaleidoscope();
+            if ($isKs) {
+                $db->prepare("UPDATE users SET kaleidoscope_balance = kaleidoscope_balance - ? WHERE id = ?")->execute([$totalCost, $userId]);
+            } else {
+                $db->prepare("UPDATE users SET token_balance = token_balance - ?, total_spent = total_spent + ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")->execute([$totalCost, $totalCost, $userId]);
+            }
 
             // Update holdings
             $stmt = $db->prepare("SELECT * FROM " . ks_table("holdings") . " WHERE user_id = ? AND stock_id = ?");
@@ -118,7 +120,7 @@ class TradingEngine {
             // Apply price impact (price goes up after buy)
             StockEngine::applyTradeImpact($stockId, $quantity, 'buy');
 
-            $newBalance = TokenSystem::getBalance($userId);
+            $newBalance = is_kaleidoscope() ? TokenSystem::getKaleidoscopeBalance($userId) : TokenSystem::getBalance($userId);
 
             return [
                 'success' => true,
@@ -195,8 +197,11 @@ class TradingEngine {
             }
 
             // Credit tokens to user (direct SQL, no nested transaction)
-            $db->prepare("UPDATE users SET token_balance = token_balance + ?, total_earned = total_earned + ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
-                ->execute([$totalReceived, $totalReceived, $userId]);
+            if (is_kaleidoscope()) {
+                $db->prepare("UPDATE users SET kaleidoscope_balance = kaleidoscope_balance + ? WHERE id = ?")->execute([$totalReceived, $userId]);
+            } else {
+                $db->prepare("UPDATE users SET token_balance = token_balance + ?, total_earned = total_earned + ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")->execute([$totalReceived, $totalReceived, $userId]);
+            }
 
             // Update stock circulating supply and volume
             $db->prepare("UPDATE stocks SET circulating_supply = MAX(0, circulating_supply - ?), volume_24h = volume_24h + ? WHERE id = ?")
@@ -226,7 +231,7 @@ class TradingEngine {
             // Apply price impact (price goes down after sell)
             StockEngine::applyTradeImpact($stockId, $quantity, 'sell');
 
-            $newBalance = TokenSystem::getBalance($userId);
+            $newBalance = is_kaleidoscope() ? TokenSystem::getKaleidoscopeBalance($userId) : TokenSystem::getBalance($userId);
 
             // Calculate profit/loss
             $avgCost = (float)$holding['avg_cost'];
@@ -341,8 +346,13 @@ class TradingEngine {
 
         try {
             // Add profits to token balance (direct SQL, no nested transaction)
-            $stmt = $db->prepare("UPDATE users SET token_balance = token_balance + ?, total_earned = total_earned + ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
-            $stmt->execute([$totalProfit, $totalProfit, $userId]);
+            if (is_kaleidoscope()) {
+                $stmt = $db->prepare("UPDATE users SET kaleidoscope_balance = kaleidoscope_balance + ? WHERE id = ?");
+                $stmt->execute([$totalProfit, $userId]);
+            } else {
+                $stmt = $db->prepare("UPDATE users SET token_balance = token_balance + ?, total_earned = total_earned + ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
+                $stmt->execute([$totalProfit, $totalProfit, $userId]);
+            }
 
             // Log transaction
             $stmt = $db->prepare("INSERT INTO " . ks_table("transactions") . " (user_id, type, total_amount, notes) VALUES (?, ?, ?, ?)");
