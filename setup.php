@@ -2,36 +2,51 @@
 /**
  * OIManka - Database Setup / Migration
  *
- * Enter DB_INIT_KEY to run migrations and initialize/repair the database.
- * Detects missing tables AND column structure issues.
- *
- * CLI: php setup.php verifysetup  — 创建验证文件，无需密钥即可迁移
+ * Browser: enter DB_INIT_KEY to run migrations.
+ * CLI:
+ *   php setup.php setup  — 检查数据库状态
+ *   php setup.php enter  — 自动执行迁移修复
  */
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/core/Database.php';
 
-// CLI mode: create verification token
-if (PHP_SAPI === 'cli' && ($argv[1] ?? '') === 'verifysetup') {
-    $token = bin2hex(random_bytes(16));
-    $vdir = __DIR__ . '/data';
-    if (!is_dir($vdir)) mkdir($vdir, 0777, true);
-    file_put_contents($vdir . '/.setup_verify', $token . ':' . time());
-    echo "✅ 验证文件已创建，请在5分钟内访问 setup.php 执行迁移。\n";
+if (PHP_SAPI === 'cli') {
+    $cmd = $argv[1] ?? '';
+    if ($cmd === 'setup') {
+        // Check status
+        $db = Database::getInstance();
+        $existing = $db->query("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")->fetchAll(PDO::FETCH_COLUMN);
+        $existing = array_map('strtolower', $existing);
+        $expectedTables = ['users','stocks','stock_prices','holdings','transactions','gacha_logs','sync_logs','gacha_config','notifications','card_placements','user_hustoj_bindings','price_overrides','platform_config','bind_verifications','card_pools','card_pool_items','card_market_listings','daily_checkins','quest_config','user_quests','claimed_rewards','user_messages','ks_holdings','ks_transactions','ks_gacha_logs','ks_card_placements','ks_card_market_listings','ks_daily_checkins','ks_card_pools','ks_card_pool_items'];
+        foreach ($expectedTables as $tbl) {
+            $ok = in_array(strtolower($tbl), $existing);
+            echo ($ok ? '✅' : '❌') . ' ' . $tbl . "\n";
+        }
+        $missing = count(array_filter($expectedTables, fn($t) => !in_array(strtolower($t), $existing)));
+        echo "\n" . ($missing > 0 ? "⚠️ 缺 {$missing} 个表，执行 php setup.php enter 修复" : "✅ 全部表就绪") . "\n";
+        exit(0);
+    }
+    if ($cmd === 'enter') {
+        // Auto-migrate
+        $results = Database::migrate();
+        $ok = count(array_filter($results, fn($v) => $v === 'ok'));
+        $total = count($results);
+        echo "✅ 迁移完成！{$ok}/{$total} 个表已就绪。\n";
+        // Ensure default pools
+        require_once __DIR__ . '/core/Session.php';
+        require_once __DIR__ . '/core/StockEngine.php';
+        require_once __DIR__ . '/core/GachaEngine.php';
+        require_once __DIR__ . '/core/PoolEngine.php';
+        PoolEngine::ensureDefaultPool();
+        echo "✅ 默认卡池已就绪。\n";
+        exit(0);
+    }
+    echo "用法: php setup.php [setup|enter]\n";
     exit(0);
 }
 
-// Browser mode: check verification file (valid for 5 minutes)
+// Browser mode — always need key or use CLI
 $verified = false;
-$vFile = __DIR__ . '/data/.setup_verify';
-if (file_exists($vFile)) {
-    $content = file_get_contents($vFile);
-    $parts = explode(':', $content);
-    if (count($parts) === 2 && time() - (int)$parts[1] < 300) {
-        $verified = true;
-    } else {
-        unlink($vFile);
-    }
-}
 
 $message = null;
 $error = null;
@@ -258,11 +273,11 @@ th{color:#6666a0;font-size:11px;text-transform:uppercase;white-space:nowrap}
         <p style="color:#4ade80;font-size:13px;text-align:center;margin-bottom:12px">✅ 已验证，可直接执行迁移</p>
         <button class="btn btn-warning">🛠️ 执行迁移修复</button>
         <?php else: ?>
-        <p style="color:#6666a0;font-size:13px;text-align:center;margin-bottom:12px">输入密钥或执行 <span class="mono">php setup.php verifysetup</span> 验证</p>
+        <p style="color:#6666a0;font-size:13px;text-align:center;margin-bottom:12px">输入密钥或执行 <span class="mono">php setup.php enter</span> 验证</p>
         <input type="text" name="key" placeholder="输入初始化密钥" autocomplete="off">
         <button class="btn btn-warning">🛠️ 执行迁移修复</button>
         <p style="font-size:12px;text-align:center;margin-top:8px;color:#6666a0">
-            密钥在 <span class="mono">config.php</span> 或终端执行 <span class="mono">php setup.php verifysetup</span>
+            密钥在 <span class="mono">config.php</span> 或终端执行 <span class="mono">php setup.php enter</span>
         </p>
         <?php endif; ?>
     </form>
