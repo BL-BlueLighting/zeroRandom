@@ -248,10 +248,10 @@ html[data-layer="kaleidoscope"] .header-inner { gap: 6px; padding: 0 10px; }
 .rarity-badge.doubao-seed { background: #1a1a1a; color: #aaa; border: 1px solid #444; }
 .rarity-badge.gemma { background: #0a1a2a; color: #00bcd4; border: 1px solid #00bcd4; }
 .rarity-badge.GLM { background: #2a2a2a; color: #fff; border: 1px solid #888; }
-.rarity-badge.LongCat { background: linear-gradient(135deg, #2a2a2a, #0a2a10); color: #2ecc71; border: 1px solid #2ecc71; }
-.rarity-badge.Qwen { background: linear-gradient(135deg, #1a0a3a, #2a2a2a); color: #a855f7; border: 1px solid #a855f7; }
-.rarity-badge.Hunyuan { background: linear-gradient(135deg, #0a2a10, #2a2a2a); color: #2ecc71; border: 1px solid #2ecc71; }
-.rarity-badge.MiniMax { background: linear-gradient(135deg, #3a0a0a, #2a2a2a); color: #e74c3c; border: 1px solid #e74c3c; }
+.rarity-badge.LongCat { background: linear-gradient(135deg, #b8f0b8, #2ecc71); color: #0a2a10; border: none; }
+.rarity-badge.Qwen { background: linear-gradient(135deg, #d4b8ff, #a855f7); color: #1a0a3a; border: none; }
+.rarity-badge.Hunyuan { background: linear-gradient(135deg, #b8f0d4, #2ecc71); color: #0a2a10; border: none; }
+.rarity-badge.MiniMax { background: linear-gradient(135deg, #ffb8b8, #e74c3c); color: #3a0a0a; border: none; }
 
 .stock-symbol.deepseek { color: #f59e0b; }
 .stock-symbol.gemini { color: #a855f7; }
@@ -261,10 +261,10 @@ html[data-layer="kaleidoscope"] .header-inner { gap: 6px; padding: 0 10px; }
 .stock-symbol.doubao-seed { color: #aaa; }
 .stock-symbol.gemma { color: #00bcd4; }
 .stock-symbol.GLM { color: #fff; }
-.stock-symbol.LongCat { background: linear-gradient(135deg, #fff, #2ecc71); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-.stock-symbol.Qwen { background: linear-gradient(135deg, #a855f7, #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-.stock-symbol.Hunyuan { background: linear-gradient(135deg, #2ecc71, #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-.stock-symbol.MiniMax { background: linear-gradient(135deg, #e74c3c, #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.stock-symbol.LongCat { color: #2ecc71; font-weight: 700; }
+.stock-symbol.Qwen { color: #a855f7; font-weight: 700; }
+.stock-symbol.Hunyuan { color: #2ecc71; font-weight: 700; }
+.stock-symbol.MiniMax { color: #e74c3c; font-weight: 700; }
 
 /* ── Category Badge ── */
 .category-badge {
