@@ -1,13 +1,17 @@
-<?php include __DIR__ . '/layout/header.php'; ?>
+<?php include __DIR__ . '/layout/header.php';
+$isKs = is_kaleidoscope();
+$ksIcon = $isKs ? '🌀' : '🪙';
+$ksUnit = $isKs ? 'SKYT' : '代币';
+?>
 <div class="page-market" style="max-width:700px;margin:0 auto">
     <div class="page-header">
-        <h1>👤 <?= htmlspecialchars($profileUser['username']) ?> 的主页</h1>
+        <h1>👤 <?= htmlspecialchars($profileUser['username']) ?><?= $isKs ? ' · 天界' : '' ?> 的主页</h1>
     </div>
 
     <div class="detail-stats-grid">
-        <div class="detail-stat"><div class="ds-label">净资产</div><div class="ds-value">🪙 <?= nf($stats['net_worth'] ?? 0, 1) ?></div></div>
-        <div class="detail-stat"><div class="ds-label">代币余额</div><div class="ds-value">🪙 <?= nf($stats['token_balance'] ?? 0, 1) ?></div></div>
-        <div class="detail-stat"><div class="ds-label">持仓市值</div><div class="ds-value">🪙 <?= nf($summary['total_value'] ?? 0, 1) ?></div></div>
+        <div class="detail-stat"><div class="ds-label">净资产</div><div class="ds-value"><?= $ksIcon ?> <?= nf($stats['net_worth'] ?? 0, 1) ?></div></div>
+        <div class="detail-stat"><div class="ds-label"><?= $isKs ? 'SKYT余额' : '代币余额' ?></div><div class="ds-value"><?= $ksIcon ?> <?= nf($stats['token_balance'] ?? 0, 1) ?></div></div>
+        <div class="detail-stat"><div class="ds-label">持仓市值</div><div class="ds-value"><?= $ksIcon ?> <?= nf($summary['total_value'] ?? 0, 1) ?></div></div>
         <div class="detail-stat"><div class="ds-label">累计签到</div><div class="ds-value">📅 <?= $checkinStats['total'] ?>天</div></div>
         <div class="detail-stat"><div class="ds-label">抽卡次数</div><div class="ds-value">🎲 <?= $gachaStats['total_pulls'] ?? 0 ?></div></div>
         <div class="detail-stat"><div class="ds-label">持有股票</div><div class="ds-value">📈 <?= $summary['total_stocks'] ?? 0 ?></div></div>
@@ -28,7 +32,7 @@
                     <span class="stock-name"><?= htmlspecialchars($c['stock_name']) ?></span>
                 </div>
                 <div class="stock-mini-meta">
-                    <span class="stock-price">🪙 <?= nf($c['market_value'], 2) ?></span>
+                    <span class="stock-price"><?= $ksIcon ?> <?= nf($c['market_value'], 2) ?></span>
                     <span>x<?= $c['quantity'] ?></span>
                 </div>
             </a>

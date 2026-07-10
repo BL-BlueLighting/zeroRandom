@@ -40,7 +40,13 @@ $profileUser = $stmt->fetch();
 if (!$profileUser) { http_response_code(404); echo '用户不存在'; exit; }
 
 // Stats
+$isKs = is_kaleidoscope();
 $stats = TokenSystem::getUserStats($profileUserId);
+if ($isKs) {
+    $ksBal = TokenSystem::getKaleidoscopeBalance($profileUserId);
+    $stats['token_balance'] = $ksBal;
+    $stats['net_worth'] = $ksBal + ($stats['portfolio_value'] ?? 0);
+}
 $checkinStats = CheckinEngine::getCheckinStats($profileUserId);
 $summary = TradingEngine::getPortfolioSummary($profileUserId);
 
@@ -48,7 +54,7 @@ $summary = TradingEngine::getPortfolioSummary($profileUserId);
 $bestCards = $db->prepare("
     SELECT h.*, s.symbol, s.name as stock_name, s.rarity, s.current_price,
            (h.quantity * s.current_price) as market_value
-    FROM holdings h JOIN stocks s ON h.stock_id = s.id
+    FROM " . ks_table("holdings") . " h JOIN stocks s ON h.stock_id = s.id
     WHERE h.user_id = ? AND h.quantity > 0
     ORDER BY market_value DESC LIMIT 3
 ");
