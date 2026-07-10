@@ -16,7 +16,11 @@ if (!defined('KALEIDOSCOPE_DURATION')) define('KALEIDOSCOPE_DURATION', 24);
  */
 if (!function_exists('ks_table')) {
     function ks_table(string $base): string {
-        return is_kaleidoscope() ? 'ks_' . $base : $base;
+        $ksTables = ['holdings','transactions','gacha_logs','card_placements','card_market_listings','daily_checkins','card_pools','card_pool_items'];
+        if (is_kaleidoscope() && in_array($base, $ksTables)) {
+            return 'ks_' . $base;
+        }
+        return $base;
     }
 }
 

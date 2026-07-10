@@ -11,7 +11,7 @@ class PoolEngine {
      */
     public static function getAllPools(): array {
         $db = Database::getInstance();
-        return $db->query("SELECT * FROM card_pools ORDER BY sort_order ASC, id ASC")->fetchAll();
+        return $db->query("SELECT * FROM " . ks_table("card_pools") . " ORDER BY sort_order ASC, id ASC")->fetchAll();
     }
 
     /**
@@ -19,7 +19,7 @@ class PoolEngine {
      */
     public static function getPool(int $poolId): ?array {
         $db = Database::getInstance();
-        $stmt = $db->prepare("SELECT * FROM card_pools WHERE id = ?");
+        $stmt = $db->prepare("SELECT * FROM " . ks_table("card_pools") . " WHERE id = ?");
         $stmt->execute([$poolId]);
         return $stmt->fetch() ?: null;
     }
@@ -30,7 +30,7 @@ class PoolEngine {
     public static function getPoolStocks(int $poolId): array {
         $db = Database::getInstance();
         $stmt = $db->prepare("
-            SELECT s.* FROM card_pool_items cpi
+            SELECT s.* FROM " . ks_table("card_pool_items") . " cpi
             JOIN stocks s ON cpi.stock_id = s.id
             WHERE cpi.pool_id = ?
             ORDER BY s.symbol ASC
@@ -44,7 +44,7 @@ class PoolEngine {
      */
     public static function getPoolStockIds(int $poolId): array {
         $db = Database::getInstance();
-        $stmt = $db->prepare("SELECT stock_id FROM card_pool_items WHERE pool_id = ?");
+        $stmt = $db->prepare("SELECT stock_id FROM " . ks_table("card_pool_items") . " WHERE pool_id = ?");
         $stmt->execute([$poolId]);
         return array_column($stmt->fetchAll(), 'stock_id');
     }
@@ -56,12 +56,12 @@ class PoolEngine {
         $db = Database::getInstance();
         $db->beginTransaction();
         try {
-            $stmt = $db->prepare("INSERT INTO card_pools (name) VALUES (?)");
+            $stmt = $db->prepare("INSERT INTO " . ks_table("card_pools") . " (name) VALUES (?)");
             $stmt->execute([$name]);
             $poolId = (int)$db->lastInsertId();
 
             if (!empty($stockIds)) {
-                $insert = $db->prepare("INSERT INTO card_pool_items (pool_id, stock_id) VALUES (?, ?)");
+                $insert = $db->prepare("INSERT INTO " . ks_table("card_pool_items") . " (pool_id, stock_id) VALUES (?, ?)");
                 foreach ($stockIds as $sid) {
                     $insert->execute([$poolId, (int)$sid]);
                 }
@@ -79,7 +79,7 @@ class PoolEngine {
      */
     public static function updatePool(int $poolId, string $name): void {
         $db = Database::getInstance();
-        $stmt = $db->prepare("UPDATE card_pools SET name = ? WHERE id = ?");
+        $stmt = $db->prepare("UPDATE " . ks_table("card_pools") . " SET name = ? WHERE id = ?");
         $stmt->execute([$name, $poolId]);
     }
 
@@ -90,8 +90,8 @@ class PoolEngine {
         $db = Database::getInstance();
         $db->beginTransaction();
         try {
-            $db->prepare("DELETE FROM card_pool_items WHERE pool_id = ?")->execute([$poolId]);
-            $db->prepare("DELETE FROM card_pools WHERE id = ?")->execute([$poolId]);
+            $db->prepare("DELETE FROM " . ks_table("card_pool_items") . " WHERE pool_id = ?")->execute([$poolId]);
+            $db->prepare("DELETE FROM " . ks_table("card_pools") . " WHERE id = ?")->execute([$poolId]);
             $db->commit();
         } catch (Exception $e) {
             $db->rollBack();
@@ -105,8 +105,8 @@ class PoolEngine {
         $db = Database::getInstance();
         $db->beginTransaction();
         try {
-            $db->prepare("DELETE FROM card_pool_items WHERE pool_id = ?")->execute([$poolId]);
-            $insert = $db->prepare("INSERT INTO card_pool_items (pool_id, stock_id) VALUES (?, ?)");
+            $db->prepare("DELETE FROM " . ks_table("card_pool_items") . " WHERE pool_id = ?")->execute([$poolId]);
+            $insert = $db->prepare("INSERT INTO " . ks_table("card_pool_items") . " (pool_id, stock_id) VALUES (?, ?)");
             foreach ($stockIds as $sid) {
                 $insert->execute([$poolId, (int)$sid]);
             }
@@ -135,20 +135,20 @@ class PoolEngine {
         $db->beginTransaction();
         try {
             // Create new pool
-            $stmt = $db->prepare("INSERT INTO card_pools (name, sort_order) VALUES (?, ?)");
+            $stmt = $db->prepare("INSERT INTO " . ks_table("card_pools") . " (name, sort_order) VALUES (?, ?)");
             $stmt->execute([$newPoolName, ($pool['sort_order'] ?? 0) + 1]);
             $newPoolId = (int)$db->lastInsertId();
 
             // Move stocks to new pool
-            $insert = $db->prepare("INSERT INTO card_pool_items (pool_id, stock_id) VALUES (?, ?)");
+            $insert = $db->prepare("INSERT INTO " . ks_table("card_pool_items") . " (pool_id, stock_id) VALUES (?, ?)");
             foreach ($moveIds as $sid) {
                 $insert->execute([$newPoolId, $sid]);
             }
 
             // Update original pool stocks
-            $db->prepare("DELETE FROM card_pool_items WHERE pool_id = ?")->execute([$poolId]);
+            $db->prepare("DELETE FROM " . ks_table("card_pool_items") . " WHERE pool_id = ?")->execute([$poolId]);
             foreach ($keepIds as $sid) {
-                $db->prepare("INSERT INTO card_pool_items (pool_id, stock_id) VALUES (?, ?)")->execute([$poolId, $sid]);
+                $db->prepare("INSERT INTO " . ks_table("card_pool_items") . " (pool_id, stock_id) VALUES (?, ?)")->execute([$poolId, $sid]);
             }
 
             $db->commit();
@@ -192,13 +192,13 @@ class PoolEngine {
         if (!empty($pools)) return;
 
         $db = Database::getInstance();
-        $stmt = $db->prepare("INSERT INTO card_pools (name, is_default, sort_order) VALUES ('常驻卡池', 1, 0)");
+        $stmt = $db->prepare("INSERT INTO " . ks_table("card_pools") . " (name, is_default, sort_order) VALUES ('常驻卡池', 1, 0)");
         $stmt->execute();
         $poolId = (int)$db->lastInsertId();
 
         // Add all active stocks
         $stocks = $db->query("SELECT id FROM stocks WHERE is_active = 1")->fetchAll();
-        $insert = $db->prepare("INSERT INTO card_pool_items (pool_id, stock_id) VALUES (?, ?)");
+        $insert = $db->prepare("INSERT INTO " . ks_table("card_pool_items") . " (pool_id, stock_id) VALUES (?, ?)");
         foreach ($stocks as $s) {
             $insert->execute([$poolId, (int)$s['id']]);
         }
@@ -211,7 +211,7 @@ class PoolEngine {
      */
     public static function setLimited(int $poolId, string $expiresAt): void {
         $db = Database::getInstance();
-        $db->prepare("UPDATE card_pools SET is_limited = 1, expires_at = ? WHERE id = ?")
+        $db->prepare("UPDATE " . ks_table("card_pools") . " SET is_limited = 1, expires_at = ? WHERE id = ?")
             ->execute([$expiresAt, $poolId]);
     }
 
@@ -220,16 +220,16 @@ class PoolEngine {
      */
     public static function unsetLimited(int $poolId): void {
         $db = Database::getInstance();
-        $db->prepare("UPDATE card_pools SET is_limited = 0, expires_at = NULL WHERE id = ?")
+        $db->prepare("UPDATE " . ks_table("card_pools") . " SET is_limited = 0, expires_at = NULL WHERE id = ?")
             ->execute([$poolId]);
         // Clear limited_edition from stocks in this pool (only if not also in another expired pool)
         $db->exec("
             UPDATE stocks SET limited_edition = 0 WHERE id IN (
-                SELECT cpi.stock_id FROM card_pool_items cpi
+                SELECT cpi.stock_id FROM " . ks_table("card_pool_items") . " cpi
                 WHERE cpi.pool_id = {$poolId}
             ) AND id NOT IN (
-                SELECT cpi2.stock_id FROM card_pool_items cpi2
-                JOIN card_pools cp2 ON cpi2.pool_id = cp2.id
+                SELECT cpi2.stock_id FROM " . ks_table("card_pool_items") . " cpi2
+                JOIN " . ks_table("card_pools") . " cp2 ON cpi2.pool_id = cp2.id
                 WHERE cp2.is_limited = 1 AND cp2.expires_at IS NOT NULL AND cp2.expires_at <= datetime('now')
             )
         ");
@@ -244,8 +244,8 @@ class PoolEngine {
         $db = Database::getInstance();
         $db->exec("
             UPDATE stocks SET limited_edition = 1 WHERE id IN (
-                SELECT cpi.stock_id FROM card_pool_items cpi
-                JOIN card_pools cp ON cpi.pool_id = cp.id
+                SELECT cpi.stock_id FROM " . ks_table("card_pool_items") . " cpi
+                JOIN " . ks_table("card_pools") . " cp ON cpi.pool_id = cp.id
                 WHERE cp.is_limited = 1 AND cp.expires_at IS NOT NULL AND cp.expires_at <= datetime('now')
             )
         ");

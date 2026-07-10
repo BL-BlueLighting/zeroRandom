@@ -307,6 +307,8 @@ class Database {
                 CREATE TABLE IF NOT EXISTS ks_card_placements (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, stock_id INTEGER NOT NULL, slot INTEGER NOT NULL DEFAULT 1, placed_at DATETIME DEFAULT CURRENT_TIMESTAMP, UNIQUE(user_id, slot));
                 CREATE TABLE IF NOT EXISTS ks_card_market_listings (id INTEGER PRIMARY KEY AUTOINCREMENT, seller_id INTEGER NOT NULL, stock_id INTEGER NOT NULL, quantity INTEGER NOT NULL DEFAULT 1, price REAL NOT NULL, status TEXT NOT NULL DEFAULT 'listed', created_at DATETIME DEFAULT CURRENT_TIMESTAMP, sold_at DATETIME, buyer_id INTEGER);
                 CREATE TABLE IF NOT EXISTS ks_daily_checkins (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, checkin_date TEXT NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, UNIQUE(user_id, checkin_date));
+                CREATE TABLE IF NOT EXISTS ks_card_pools (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, is_default INTEGER DEFAULT 0, is_limited INTEGER DEFAULT 0, expires_at DATETIME, sort_order INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
+                CREATE TABLE IF NOT EXISTS ks_card_pool_items (id INTEGER PRIMARY KEY AUTOINCREMENT, pool_id INTEGER NOT NULL, stock_id INTEGER NOT NULL);
             ",
         ];
 
