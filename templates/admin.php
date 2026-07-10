@@ -632,10 +632,20 @@ include __DIR__ . '/layout/header.php';
                     <div class="form-group">
                         <label>稀有度</label>
                         <select name="fake_rarity" class="form-input" style="width:120px">
+                            <?php if ($isKs): ?>
+                            <?php foreach (GachaEngine::KS_RARITY_ORDER as $r): ?>
+                            <option value="<?= $r ?>"><?= GachaEngine::KS_RARITY_NAMES[$r] ?></option>
+                            <?php endforeach; ?>
+                            <?php else: ?>
                             <option value="common">普通</option>
                             <option value="rare">稀有</option>
                             <option value="epic">史诗</option>
                             <option value="legendary">传说</option>
+                            <option value="claude">Claude</option>
+                            <option value="gpt">GPT</option>
+                            <option value="gemini">Gemini</option>
+                            <option value="deepseek">DeepSeek</option>
+                            <?php endif; ?>
                         </select>
                     </div>
                     <div class="form-group">
@@ -913,10 +923,16 @@ include __DIR__ . '/layout/header.php';
                         <label>自定义稀有度（可选）</label>
                         <select name="custom_rarity" class="form-input" style="width:120px">
                             <option value="">不修改</option>
+                            <?php if ($isKs): ?>
+                            <?php foreach (GachaEngine::KS_RARITY_ORDER as $r): ?>
+                            <option value="<?= $r ?>"><?= GachaEngine::KS_RARITY_NAMES[$r] ?></option>
+                            <?php endforeach; ?>
+                            <?php else: ?>
                             <option value="common">普通</option>
                             <option value="rare">稀有</option>
                             <option value="epic">史诗</option>
                             <option value="legendary">传说</option>
+                            <?php endif; ?>
                             <option value="limited">绝版</option>
                         </select>
                     </div>
