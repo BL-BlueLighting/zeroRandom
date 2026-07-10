@@ -292,6 +292,7 @@ html[data-layer="kaleidoscope"] .header-inner { gap: 6px; padding: 0 10px; }
 .stock-row { cursor: pointer; transition: background var(--transition); }
 .stock-row:hover { background: var(--bg-hover); }
 .row-highlight { background: #1a1a3a; }
+html[data-layer="kaleidoscope"] .row-highlight { background: #e8e0d8; }
 .stock-symbol-table { font-weight: 700; font-size: 13px; }
 .td-rank { font-weight: 700; color: var(--text-muted); width: 40px; }
 .td-price { font-weight: 600; }
