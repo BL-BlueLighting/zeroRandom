@@ -3,23 +3,25 @@
  * zero Random - Gacha Pull Page
  */
 $pageTitle = is_kaleidoscope() ? '天界抽卡' : '抽卡';
+$isKs = is_kaleidoscope();
+$ksIcon = $isKs ? '🌀' : '🪙';
 
 include __DIR__ . '/layout/header.php';
 ?>
 
 <div class="page-gacha">
     <div class="page-header">
-        <h1>🎲 抽卡</h1>
+        <h1><?= $isKs ? '🌌 天界抽卡' : '🎲 抽卡' ?></h1>
         <?php if (Session::isLoggedIn()):
             $userId = Session::userId();
-            $balance = TokenSystem::getBalance($userId);
+            $balance = $isKs ? TokenSystem::getKaleidoscopeBalance($userId) : TokenSystem::getBalance($userId);
             $stats = GachaEngine::getPullStats($userId);
             // 100-pull pity counter
             $hundredPulls = (int)$stats['hundred_count'];
             $pityNext = GACHA_LEGENDARY_PITY_100 - (($hundredPulls % GACHA_LEGENDARY_PITY_100));
             if ($pityNext === GACHA_LEGENDARY_PITY_100) $pityNext = 0;
         ?>
-        <span class="token-display large">🪙 <?= nf($balance, 1) ?></span>
+        <span class="token-display large"><?= $ksIcon ?> <?= nf($balance, 1) ?></span>
         <?php endif; ?>
     </div>
 
@@ -33,9 +35,9 @@ include __DIR__ . '/layout/header.php';
     <div class="pity-info">
         <?php if (isset($pityNext) && $pityNext > 0): ?>
         <span>📊 百连抽保底进度: <?= $hundredPulls % GACHA_LEGENDARY_PITY_100 ?>/<?= GACHA_LEGENDARY_PITY_100 ?>
-            （再 <?= $pityNext ?> 次百连抽保底传说）</span>
+            （再 <?= $pityNext ?> 次百连抽保底<?= $isKs ? 'DeepSeek' : '传说' ?>）</span>
         <?php elseif (isset($pityNext)): ?>
-        <span>🌟 下次百连抽必定出传说！</span>
+        <span>🌟 下次百连抽必定出<?= $isKs ? 'DeepSeek' : '传说' ?>！</span>
         <?php endif; ?>
     </div>
 
@@ -61,13 +63,13 @@ include __DIR__ . '/layout/header.php';
 
         <div class="gacha-actions">
             <button class="btn btn-primary" onclick="doPull('single')" id="btnSingle">
-                🎲 单抽 <br><small>🪙 <?= GACHA_SINGLE_COST ?></small>
+                🎲 单抽 <br><small><?= $ksIcon ?> <?= GACHA_SINGLE_COST ?></small>
             </button>
             <button class="btn btn-accent" onclick="doPull('multi')" id="btnMulti">
-                🎰 十连抽 <br><small>🪙 <?= GACHA_MULTI_COST ?> · 保底稀有</small>
+                🎰 十连抽 <br><small><?= $ksIcon ?> <?= GACHA_MULTI_COST ?> · 保底稀有</small>
             </button>
             <button class="btn btn-gold" onclick="doPull('hundred')" id="btnHundred">
-                💫 百连抽 <br><small>🪙 <?= GACHA_HUNDRED_COST ?> · 保底史诗</small>
+                💫 百连抽 <br><small><?= $ksIcon ?> <?= GACHA_HUNDRED_COST ?> · 保底史诗</small>
             </button>
             <button class="btn btn-danger" onclick="doAllIn()" id="btnAllIn" style="background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;border:none">
                 🔴 梭哈 <br><small>最多 500 万 · 30 分钟冷却</small>
@@ -136,6 +138,7 @@ include __DIR__ . '/layout/header.php';
 </div>
 
 <script>
+const ksIcon = '<?= $ksIcon ?>';
 async function doPull(type) {
     const buttons = {
         single: document.getElementById('btnSingle'),
@@ -167,7 +170,7 @@ async function doPull(type) {
                     <div class="gc-rarity" style="color: ${r.rarity_color}">${r.rarity_name}</div>
                     <div class="gc-symbol">${r.symbol}</div>
                     <div class="gc-name">${r.name}</div>
-                    <div class="gc-price">🪙 ${parseFloat(r.price).toFixed(2)}</div>
+                    <div class="gc-price">${ksIcon} ${parseFloat(r.price).toFixed(2)}</div>
                 </div>`;
             });
             html += '</div>';
@@ -178,7 +181,7 @@ async function doPull(type) {
 
             // Update balance
             const tokenEl = document.querySelector('.token-display.large');
-            if (tokenEl) tokenEl.textContent = '🪙 ' + data.balance_remaining.toFixed(1);
+            if (tokenEl) tokenEl.textContent = ksIcon + ' ' + data.balance_remaining.toFixed(1);
 
             // On 100-pull with guaranteed legendary, show special effect
             if (data.guaranteed_legendary) {
@@ -235,13 +238,13 @@ async function doPullAllIn() {
                     + '<div class="gc-rarity" style="color:' + r.rarity_color + '">' + r.rarity_name + '</div>'
                     + '<div class="gc-symbol">' + r.symbol + '</div>'
                     + '<div class="gc-name">' + r.name + '</div>'
-                    + '<div class="gc-price">🪙 ' + parseFloat(r.price).toFixed(2) + '</div></div>';
+                    + '<div class="gc-price">' + ksIcon + ' ' + parseFloat(r.price).toFixed(2) + '</div></div>';
             });
             html += '</div>';
             if (data.message) html += '<p class="pity-msg">' + data.message + '</p>';
             display.innerHTML = html;
             const tokenEl = document.querySelector('.token-display.large');
-            if (tokenEl) tokenEl.textContent = '🪙 ' + data.balance_remaining.toFixed(1);
+            if (tokenEl) tokenEl.textContent = ksIcon + ' ' + data.balance_remaining.toFixed(1);
         }
     } catch (err) { display.innerHTML = '<div class="gacha-error"><p>❌ 网络错误</p></div>'; }
     document.getElementById('btnAllIn').disabled = false;
