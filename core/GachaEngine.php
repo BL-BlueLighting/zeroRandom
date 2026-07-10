@@ -146,7 +146,7 @@ class GachaEngine {
         if ($type === 'hundred') {
             $db = Database::getInstance();
             $stmt = $db->prepare("
-                SELECT COUNT(*) FROM gacha_logs
+                SELECT COUNT(*) FROM " . ks_table("gacha_logs") . "
                 WHERE user_id = ? AND pull_type = 'hundred'
             ");
             $stmt->execute([$userId]);
@@ -198,7 +198,7 @@ class GachaEngine {
 
             // Log the pull
             $logStmt = $db->prepare("
-                INSERT INTO gacha_logs (user_id, stock_id, rarity, pull_type, cost)
+                INSERT INTO " . ks_table("gacha_logs") . " (user_id, stock_id, rarity, pull_type, cost)
                 VALUES (?, ?, ?, ?, ?)
             ");
             $perItemCost = round($cost / $count, 2);
@@ -206,7 +206,7 @@ class GachaEngine {
 
             // Log as transaction
             $txStmt = $db->prepare("
-                INSERT INTO transactions (user_id, stock_id, type, quantity, price, total_amount, notes)
+                INSERT INTO " . ks_table("transactions") . " (user_id, stock_id, type, quantity, price, total_amount, notes)
                 VALUES (?, ?, 'gacha_pull', 1, ?, ?, ?)
             ");
             $txStmt->execute([$userId, $stockId, (float)$stock['current_price'], -$perItemCost, "扭蛋抽卡获得 {$stock['name']}"]);
@@ -287,16 +287,16 @@ class GachaEngine {
      */
     public static function creditHolding(int $userId, int $stockId): void {
         $db = Database::getInstance();
-        $stmt = $db->prepare("SELECT * FROM holdings WHERE user_id = ? AND stock_id = ?");
+        $stmt = $db->prepare("SELECT * FROM " . ks_table("holdings") . " WHERE user_id = ? AND stock_id = ?");
         $stmt->execute([$userId, $stockId]);
         $holding = $stmt->fetch();
 
         if ($holding) {
             $newQty = (int)$holding['quantity'] + 1;
-            $stmt = $db->prepare("UPDATE holdings SET quantity = ? WHERE id = ?");
+            $stmt = $db->prepare("UPDATE " . ks_table("holdings") . " SET quantity = ? WHERE id = ?");
             $stmt->execute([$newQty, $holding['id']]);
         } else {
-            $stmt = $db->prepare("INSERT INTO holdings (user_id, stock_id, quantity, avg_cost) VALUES (?, ?, 1, 0)");
+            $stmt = $db->prepare("INSERT INTO " . ks_table("holdings") . " (user_id, stock_id, quantity, avg_cost) VALUES (?, ?, 1, 0)");
             $stmt->execute([$userId, $stockId]);
         }
     }
@@ -354,7 +354,7 @@ class GachaEngine {
         $db = Database::getInstance();
         $stmt = $db->prepare("
             SELECT g.*, s.symbol, s.name as stock_name, s.category
-            FROM gacha_logs g
+            FROM " . ks_table("gacha_logs") . " g
             JOIN stocks s ON g.stock_id = s.id
             WHERE g.user_id = ?
             ORDER BY g.created_at DESC
@@ -379,7 +379,7 @@ class GachaEngine {
                 SUM(CASE WHEN pull_type = 'multi' THEN 1 ELSE 0 END) as multi_count,
                 SUM(CASE WHEN pull_type = 'hundred' THEN 1 ELSE 0 END) as hundred_count,
                 SUM(cost) as total_spent
-            FROM gacha_logs
+            FROM " . ks_table("gacha_logs") . "
             WHERE user_id = ?
         ");
         $stmt->execute([$userId]);
@@ -417,7 +417,7 @@ class GachaEngine {
         $db = Database::getInstance();
         $stmt = $db->prepare("
             SELECT DISTINCT s.*, h.quantity
-            FROM holdings h
+            FROM " . ks_table("holdings") . " h
             JOIN stocks s ON h.stock_id = s.id
             WHERE h.user_id = ? AND h.quantity > 0
             ORDER BY s.rarity DESC, s.current_price DESC
@@ -451,7 +451,7 @@ class GachaEngine {
         $guaranteedLegendary = false;
         $pity100Count = 0;
         if ($type === 'hundred') {
-            $pity100Count = (int)$db->query("SELECT COUNT(*) FROM gacha_logs WHERE user_id = {$userId} AND pull_type = 'hundred'")->fetchColumn();
+            $pity100Count = (int)$db->query("SELECT COUNT(*) FROM " . ks_table("gacha_logs") . " WHERE user_id = {$userId} AND pull_type = 'hundred'")->fetchColumn();
             if (($pity100Count + 1) % GACHA_LEGENDARY_PITY_100 === 0) {
                 $guaranteedLegendary = true;
             }
@@ -507,7 +507,7 @@ class GachaEngine {
             $stockId = (int)$stock['id'];
             self::creditHolding($userId, $stockId);
             $perItemCost = round($cost / $count, 2);
-            $db->prepare("INSERT INTO gacha_logs (user_id, stock_id, rarity, pull_type, cost) VALUES (?, ?, ?, ?, ?)")
+            $db->prepare("INSERT INTO " . ks_table("gacha_logs") . " (user_id, stock_id, rarity, pull_type, cost) VALUES (?, ?, ?, ?, ?)")
                 ->execute([$userId, $stockId, $rarity, $type, $perItemCost]);
             $results[] = [
                 'id' => $stockId,

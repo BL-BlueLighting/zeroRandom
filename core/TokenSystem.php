@@ -32,7 +32,7 @@ class TokenSystem {
             $stmt->execute([$amount, $amount, $userId]);
 
             // Log transaction
-            $logStmt = $db->prepare("INSERT INTO transactions (user_id, type, total_amount, notes) VALUES (?, ?, ?, ?)");
+            $logStmt = $db->prepare("INSERT INTO " . ks_table("transactions") . " (user_id, type, total_amount, notes) VALUES (?, ?, ?, ?)");
             $logStmt->execute([$userId, $reason, $amount, "获得 {$amount} 代币"]);
 
             $db->commit();
@@ -61,7 +61,7 @@ class TokenSystem {
             $stmt->execute([$amount, $amount, $userId]);
 
             // Log transaction
-            $logStmt = $db->prepare("INSERT INTO transactions (user_id, type, total_amount, notes) VALUES (?, ?, ?, ?)");
+            $logStmt = $db->prepare("INSERT INTO " . ks_table("transactions") . " (user_id, type, total_amount, notes) VALUES (?, ?, ?, ?)");
             $logStmt->execute([$userId, $reason, -$amount, "消费 {$amount} 代币"]);
 
             $db->commit();
@@ -95,7 +95,7 @@ class TokenSystem {
             $stmt->execute([$amount, $amount, $toUserId]);
 
             // Log both sides
-            $logStmt = $db->prepare("INSERT INTO transactions (user_id, type, total_amount, notes) VALUES (?, ?, ?, ?)");
+            $logStmt = $db->prepare("INSERT INTO " . ks_table("transactions") . " (user_id, type, total_amount, notes) VALUES (?, ?, ?, ?)");
             $logStmt->execute([$fromUserId, 'transfer_out', -$amount, "转账给用户 #{$toUserId}"]);
             $logStmt->execute([$toUserId, 'reward', $amount, "收到用户 #{$fromUserId} 转账"]);
 
@@ -121,7 +121,7 @@ class TokenSystem {
         $db = Database::getInstance();
         $stmt = $db->prepare("
             SELECT t.*, s.symbol, s.name as stock_name
-            FROM transactions t
+            FROM " . ks_table("transactions") . " t
             LEFT JOIN stocks s ON t.stock_id = s.id
             WHERE t.user_id = ?
             ORDER BY t.created_at DESC
@@ -136,7 +136,7 @@ class TokenSystem {
      */
     public static function getTransactionCount(int $userId): int {
         $db = Database::getInstance();
-        $stmt = $db->prepare("SELECT COUNT(*) FROM transactions WHERE user_id = ?");
+        $stmt = $db->prepare("SELECT COUNT(*) FROM " . ks_table("transactions") . " WHERE user_id = ?");
         $stmt->execute([$userId]);
         return (int)$stmt->fetchColumn();
     }
@@ -151,11 +151,11 @@ class TokenSystem {
                 token_balance,
                 total_earned,
                 total_spent,
-                (SELECT COUNT(*) FROM holdings WHERE user_id = ? AND quantity > 0) as unique_stocks,
+                (SELECT COUNT(*) FROM " . ks_table("holdings") . " WHERE user_id = ? AND quantity > 0) as unique_stocks,
                 (SELECT COALESCE(SUM(h.quantity * s.current_price), 0)
-                 FROM holdings h JOIN stocks s ON h.stock_id = s.id
+                 FROM " . ks_table("holdings") . " h JOIN stocks s ON h.stock_id = s.id
                  WHERE h.user_id = ? AND h.quantity > 0) as portfolio_value,
-                (SELECT COUNT(*) FROM gacha_logs WHERE user_id = ?) as total_pulls
+                (SELECT COUNT(*) FROM " . ks_table("gacha_logs") . " WHERE user_id = ?) as total_pulls
             FROM users WHERE id = ?
         ");
         $stmt->execute([$userId, $userId, $userId, $userId]);
@@ -186,9 +186,9 @@ class TokenSystem {
                 COALESCE(SUM(h.quantity * s.current_price), 0) as portfolio_value,
                 u.token_balance + COALESCE(SUM(h.quantity * s.current_price), 0) as net_worth,
                 COUNT(DISTINCT h.stock_id) as unique_stocks,
-                (SELECT COUNT(*) FROM gacha_logs WHERE user_id = u.id) as total_pulls
+                (SELECT COUNT(*) FROM " . ks_table("gacha_logs") . " WHERE user_id = u.id) as total_pulls
             FROM users u
-            LEFT JOIN holdings h ON h.user_id = u.id AND h.quantity > 0
+            LEFT JOIN " . ks_table("holdings") . " h ON h.user_id = u.id AND h.quantity > 0
             LEFT JOIN stocks s ON h.stock_id = s.id
             GROUP BY u.id
             ORDER BY net_worth DESC

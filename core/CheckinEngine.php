@@ -5,7 +5,7 @@ class CheckinEngine {
     public static function canCheckin(int $userId): bool {
         $db = Database::getInstance();
         $today = date('Y-m-d');
-        $stmt = $db->prepare("SELECT id FROM daily_checkins WHERE user_id = ? AND checkin_date = ?");
+        $stmt = $db->prepare("SELECT id FROM " . ks_table("daily_checkins") . " WHERE user_id = ? AND checkin_date = ?");
         $stmt->execute([$userId, $today]);
         return !$stmt->fetch();
     }
@@ -21,14 +21,14 @@ class CheckinEngine {
         $db = Database::getInstance();
         $db->beginTransaction();
         try {
-            $db->prepare("INSERT INTO daily_checkins (user_id, checkin_date) VALUES (?, ?)")
+            $db->prepare("INSERT INTO " . ks_table("daily_checkins") . " (user_id, checkin_date) VALUES (?, ?)")
                 ->execute([$userId, date('Y-m-d')]);
             if ($isKs) {
                 $db->prepare("UPDATE users SET kaleidoscope_balance = kaleidoscope_balance + ? WHERE id = ?")->execute([$reward, $userId]);
             } else {
                 $db->prepare("UPDATE users SET token_balance = token_balance + ?, total_earned = total_earned + ? WHERE id = ?")->execute([$reward, $reward, $userId]);
             }
-            $db->prepare("INSERT INTO transactions (user_id, type, total_amount, notes) VALUES (?, ?, ?, ?)")
+            $db->prepare("INSERT INTO " . ks_table("transactions") . " (user_id, type, total_amount, notes) VALUES (?, ?, ?, ?)")
                 ->execute([$userId, 'checkin', $reward, '每日签到']);
             $db->commit();
             return ['success' => true, 'message' => "签到成功！获得 {$reward} {$unit}。"];
@@ -40,12 +40,12 @@ class CheckinEngine {
 
     public static function getCheckinStats(int $userId): array {
         $db = Database::getInstance();
-        $total = $db->prepare("SELECT COUNT(*) FROM daily_checkins WHERE user_id = ?");
+        $total = $db->prepare("SELECT COUNT(*) FROM " . ks_table("daily_checkins") . " WHERE user_id = ?");
         $total->execute([$userId]);
         $streak = 0;
         $d = new DateTime();
         while (true) {
-            $stmt = $db->prepare("SELECT id FROM daily_checkins WHERE user_id = ? AND checkin_date = ?");
+            $stmt = $db->prepare("SELECT id FROM " . ks_table("daily_checkins") . " WHERE user_id = ? AND checkin_date = ?");
             $stmt->execute([$userId, $d->format('Y-m-d')]);
             if ($stmt->fetch()) { $streak++; $d->modify('-1 day'); }
             else break;

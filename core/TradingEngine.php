@@ -95,7 +95,7 @@ class TradingEngine {
 
             // Log the trade + fee as separate transaction entries
             $logStmt = $db->prepare("
-                INSERT INTO transactions (user_id, stock_id, type, quantity, price, total_amount, fee, notes)
+                INSERT INTO " . ks_table("transactions") . " (user_id, stock_id, type, quantity, price, total_amount, fee, notes)
                 VALUES (?, ?, 'buy', ?, ?, ?, ?, ?)
             ");
             $logStmt->execute([
@@ -107,7 +107,7 @@ class TradingEngine {
             // Log fee separately
             if ($fee > 0) {
                 $feeStmt = $db->prepare("
-                    INSERT INTO transactions (user_id, stock_id, type, total_amount, fee, notes)
+                    INSERT INTO " . ks_table("transactions") . " (user_id, stock_id, type, total_amount, fee, notes)
                     VALUES (?, ?, 'fee', ?, ?, ?)
                 ");
                 $feeStmt->execute([$userId, $stockId, -$fee, $fee, "交易手续费"]);
@@ -204,7 +204,7 @@ class TradingEngine {
 
             // Log the trade
             $logStmt = $db->prepare("
-                INSERT INTO transactions (user_id, stock_id, type, quantity, price, total_amount, fee, notes)
+                INSERT INTO " . ks_table("transactions") . " (user_id, stock_id, type, quantity, price, total_amount, fee, notes)
                 VALUES (?, ?, 'sell', ?, ?, ?, ?, ?)
             ");
             $logStmt->execute([
@@ -215,7 +215,7 @@ class TradingEngine {
 
             if ($fee > 0) {
                 $feeStmt = $db->prepare("
-                    INSERT INTO transactions (user_id, stock_id, type, total_amount, fee, notes)
+                    INSERT INTO " . ks_table("transactions") . " (user_id, stock_id, type, total_amount, fee, notes)
                     VALUES (?, ?, 'fee', ?, ?, ?)
                 ");
                 $feeStmt->execute([$userId, $stockId, -$fee, $fee, "卖出交易手续费"]);
@@ -345,7 +345,7 @@ class TradingEngine {
             $stmt->execute([$totalProfit, $totalProfit, $userId]);
 
             // Log transaction
-            $stmt = $db->prepare("INSERT INTO transactions (user_id, type, total_amount, notes) VALUES (?, ?, ?, ?)");
+            $stmt = $db->prepare("INSERT INTO " . ks_table("transactions") . " (user_id, type, total_amount, notes) VALUES (?, ?, ?, ?)");
             $stmt->execute([$userId, 'withdraw', $totalProfit, "提现盈利 {$totalProfit} 枚代币"]);
 
             // Reset avg_cost to current_price for profitable holdings

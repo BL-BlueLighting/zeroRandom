@@ -11,6 +11,16 @@ if (!defined('KALEIDOSCOPE_CONVERT_RATE')) define('KALEIDOSCOPE_CONVERT_RATE', 1
 if (!defined('KALEIDOSCOPE_DURATION')) define('KALEIDOSCOPE_DURATION', 24);
 
 /**
+ * Get the active table name for current layer.
+ * Kaleidoscope mode uses ks_* prefixed tables.
+ */
+if (!function_exists('ks_table')) {
+    function ks_table(string $base): string {
+        return is_kaleidoscope() ? 'ks_' . $base : $base;
+    }
+}
+
+/**
  * Check if current session is in Kaleidoscope (天·界) layer.
  */
 if (!function_exists('is_kaleidoscope')) {

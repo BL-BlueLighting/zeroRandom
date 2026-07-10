@@ -155,7 +155,7 @@ class AutoJob {
             $overLimit = $db->query("
                 SELECT h.id, h.user_id, h.stock_id, h.quantity, h.avg_cost,
                        s.current_price, s.symbol, u.token_balance
-                FROM holdings h
+                FROM " . ks_table("holdings") . " h
                 JOIN stocks s ON h.stock_id = s.id
                 JOIN users u ON h.user_id = u.id
                 WHERE h.quantity > {$maxHoldings}
@@ -169,13 +169,13 @@ class AutoJob {
                 $userId = (int)$hold['user_id'];
                 $newQty = $maxHoldings;
 
-                $db->prepare("UPDATE holdings SET quantity = ? WHERE id = ?")
+                $db->prepare("UPDATE " . ks_table("holdings") . " SET quantity = ? WHERE id = ?")
                     ->execute([$newQty, $hold['id']]);
 
                 if ($value > 0) {
                     $db->prepare("UPDATE users SET token_balance = token_balance + ?, total_earned = total_earned + ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
                         ->execute([$value, $value, $userId]);
-                    $db->prepare("INSERT INTO transactions (user_id, type, total_amount, notes) VALUES (?, 'auto_convert', ?, ?)")
+                    $db->prepare("INSERT INTO " . ks_table("transactions") . " (user_id, type, total_amount, notes) VALUES (?, 'auto_convert', ?, ?)")
                         ->execute([$userId, $value, "{$hold['symbol']} 超出持股限制 {$maxHoldings}，超出 {$excess} 股按 50% 折算为 {$value} 代币"]);
 
                     $netWorth = (float)$hold['token_balance'] + (float)$hold['current_price'] * (int)$hold['quantity'];
