@@ -47,6 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($isAdmin) {
             $db->prepare("UPDATE users SET kaleidoscope_expires_at = datetime('now', '+".KALEIDOSCOPE_DURATION." hours') WHERE id = ?")->execute([$userId]);
             $_SESSION['layer'] = 'kaleidoscope';
+            PoolEngine::ensureDefaultPool();
             header('Location: ' . url('/'));
             exit;
         } else {
@@ -55,6 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 TokenSystem::spend($userId, $fee, 'kaleidoscope_entry');
                 $db->prepare("UPDATE users SET kaleidoscope_expires_at = datetime('now', '+".KALEIDOSCOPE_DURATION." hours') WHERE id = ?")->execute([$userId]);
                 $_SESSION['layer'] = 'kaleidoscope';
+                PoolEngine::ensureDefaultPool();
                 header('Location: ' . url('/'));
                 exit;
             } else {
