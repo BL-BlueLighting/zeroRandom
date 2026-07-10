@@ -9,6 +9,7 @@
  */
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/core/Database.php';
+require_once __DIR__ . '/helpers.php';
 
 if (PHP_SAPI === 'cli') {
     $cmd = $argv[1] ?? '';
