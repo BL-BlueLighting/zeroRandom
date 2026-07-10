@@ -346,6 +346,12 @@ class Database {
             "ALTER TABLE users ADD COLUMN number_style TEXT DEFAULT 'wan'",
             "ALTER TABLE users ADD COLUMN kaleidoscope_balance REAL DEFAULT 0",
             "ALTER TABLE users ADD COLUMN kaleidoscope_expires_at DATETIME",
+            "CREATE TABLE IF NOT EXISTS ks_holdings (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, stock_id INTEGER NOT NULL, quantity INTEGER NOT NULL DEFAULT 0, avg_cost REAL NOT NULL, UNIQUE(user_id, stock_id))",
+            "CREATE TABLE IF NOT EXISTS ks_transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, stock_id INTEGER, type TEXT NOT NULL, quantity INTEGER, price REAL, total_amount REAL, fee REAL DEFAULT 0, notes TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)",
+            "CREATE TABLE IF NOT EXISTS ks_gacha_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, stock_id INTEGER NOT NULL, rarity TEXT NOT NULL, pull_type TEXT DEFAULT 'single', cost REAL NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)",
+            "CREATE TABLE IF NOT EXISTS ks_card_placements (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, stock_id INTEGER NOT NULL, slot INTEGER NOT NULL DEFAULT 1, placed_at DATETIME DEFAULT CURRENT_TIMESTAMP, UNIQUE(user_id, slot))",
+            "CREATE TABLE IF NOT EXISTS ks_card_market_listings (id INTEGER PRIMARY KEY AUTOINCREMENT, seller_id INTEGER NOT NULL, stock_id INTEGER NOT NULL, quantity INTEGER NOT NULL DEFAULT 1, price REAL NOT NULL, status TEXT NOT NULL DEFAULT 'listed', created_at DATETIME DEFAULT CURRENT_TIMESTAMP, sold_at DATETIME, buyer_id INTEGER)",
+            "CREATE TABLE IF NOT EXISTS ks_daily_checkins (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, checkin_date TEXT NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, UNIQUE(user_id, checkin_date))",
         ];
         foreach ($columnMigrations as $sql) {
             try {
@@ -357,23 +363,7 @@ class Database {
 
         // New tables
         $newTables = [
-            'claimed_rewards' => "
-                CREATE TABLE IF NOT EXISTS claimed_rewards (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id INTEGER NOT NULL,
-                    notification_id INTEGER NOT NULL,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (user_id) REFERENCES users(id),
-                    FOREIGN KEY (notification_id) REFERENCES notifications(id),
-                    UNIQUE(user_id, notification_id)
-                )
-            ",
-            'ks_holdings' => "CREATE TABLE IF NOT EXISTS ks_holdings (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, stock_id INTEGER NOT NULL, quantity INTEGER NOT NULL DEFAULT 0, avg_cost REAL NOT NULL, UNIQUE(user_id, stock_id))",
-            'ks_transactions' => "CREATE TABLE IF NOT EXISTS ks_transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, stock_id INTEGER, type TEXT NOT NULL, quantity INTEGER, price REAL, total_amount REAL, fee REAL DEFAULT 0, notes TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)",
-            'ks_gacha_logs' => "CREATE TABLE IF NOT EXISTS ks_gacha_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, stock_id INTEGER NOT NULL, rarity TEXT NOT NULL, pull_type TEXT DEFAULT 'single', cost REAL NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)",
-            'ks_card_placements' => "CREATE TABLE IF NOT EXISTS ks_card_placements (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, stock_id INTEGER NOT NULL, slot INTEGER NOT NULL DEFAULT 1, placed_at DATETIME DEFAULT CURRENT_TIMESTAMP, UNIQUE(user_id, slot))",
-            'ks_card_market_listings' => "CREATE TABLE IF NOT EXISTS ks_card_market_listings (id INTEGER PRIMARY KEY AUTOINCREMENT, seller_id INTEGER NOT NULL, stock_id INTEGER NOT NULL, quantity INTEGER NOT NULL DEFAULT 1, price REAL NOT NULL, status TEXT NOT NULL DEFAULT 'listed', created_at DATETIME DEFAULT CURRENT_TIMESTAMP, sold_at DATETIME, buyer_id INTEGER)",
-            'ks_daily_checkins' => "CREATE TABLE IF NOT EXISTS ks_daily_checkins (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, checkin_date TEXT NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, UNIQUE(user_id, checkin_date))",
+            'claimed_rewards' => "CREATE TABLE IF NOT EXISTS claimed_rewards (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, notification_id INTEGER NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id), FOREIGN KEY (notification_id) REFERENCES notifications(id), UNIQUE(user_id, notification_id))",
         ];
         foreach ($newTables as $table => $sql) {
             try {
