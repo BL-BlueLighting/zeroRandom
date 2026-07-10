@@ -549,8 +549,8 @@ class GachaEngine {
                 $rarity = self::rollFromWeights($weights);
             }
 
-            // Limited pool: only 35% chance to actually draw
-            if ($isLimited && !$forceLegendary) {
+            // Limited pool or Kaleidoscope: only 5% chance to actually draw
+            if (($isLimited || is_kaleidoscope()) && !$forceLegendary) {
                 if (mt_rand(1, 100) > 5) {
                     $rarityName = self::rarityNames()[$rarity] ?? $rarity;
                     $results[] = [
