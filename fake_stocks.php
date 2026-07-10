@@ -20,20 +20,32 @@ $message = null;
 $db = Database::getInstance();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $names = $_POST['name'] ?? [];
-    $symbols = $_POST['symbol'] ?? [];
-    $rarities = $_POST['rarity'] ?? [];
-    $prices = $_POST['price'] ?? [];
-    $categories = $_POST['category'] ?? [];
-    $count = 0;
+    $action = $_POST['action'] ?? '';
 
-    foreach ($names as $i => $name) {
+    // Delete existing fake stock
+    if ($action === 'delete') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id) {
+            $db->prepare("DELETE FROM stocks WHERE id = ? AND adapter_name = 'fake'")->execute([$id]);
+        }
+        exit;
+    }
+
+    $count = 0;
+    // Create new stocks
+    $newNames = $_POST['new_name'] ?? [];
+    $newSymbols = $_POST['new_symbol'] ?? [];
+    $newRarities = $_POST['new_rarity'] ?? [];
+    $newPrices = $_POST['new_price'] ?? [];
+    $newCategories = $_POST['new_category'] ?? [];
+
+    foreach ($newNames as $i => $name) {
         $name = trim($name);
-        $symbol = strtoupper(trim($symbols[$i] ?? ''));
+        $symbol = strtoupper(trim($newSymbols[$i] ?? ''));
         if (!$name || !$symbol) continue;
-        $rarity = $rarities[$i] ?? 'claude';
-        $price = max(0.01, (float)($prices[$i] ?? 10));
-        $cat = trim($categories[$i] ?? '未分类');
+        $rarity = $newRarities[$i] ?? 'claude';
+        $price = max(0.01, (float)($newPrices[$i] ?? 10));
+        $cat = trim($newCategories[$i] ?? '未分类');
         $adapterKey = 'fake_' . time() . '_' . $i;
 
         try {
@@ -49,7 +61,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $count++;
         } catch (Exception $e) {}
     }
-    $message = "✅ 已创建 {$count} 个假题目。";
+
+    // Update existing stocks
+    $existingIds = $_POST['existing_id'] ?? [];
+    $existingSymbols = $_POST['existing_symbol'] ?? [];
+    $existingNames = $_POST['existing_name'] ?? [];
+    $existingRarities = $_POST['existing_rarity'] ?? [];
+    $existingPrices = $_POST['existing_price'] ?? [];
+    $existingCategories = $_POST['existing_category'] ?? [];
+    $updateCount = 0;
+
+    foreach ($existingIds as $i => $id) {
+        $id = (int)$id;
+        if (!$id) continue;
+        $symbol = strtoupper(trim($existingSymbols[$i] ?? ''));
+        $name = trim($existingNames[$i] ?? '');
+        $rarity = $existingRarities[$i] ?? '';
+        $price = max(0.01, (float)($existingPrices[$i] ?? 0));
+        $cat = trim($existingCategories[$i] ?? '');
+
+        try {
+            $db->prepare("UPDATE stocks SET symbol = ?, name = ?, rarity = ?, current_price = ?, base_price = ?, category = ?, market_cap = ROUND(? * circulating_supply, 2) WHERE id = ? AND adapter_name = 'fake'")
+                ->execute([$symbol, $name, $rarity, $price, $price, $cat, $price, $id]);
+            $updateCount++;
+        } catch (Exception $e) {}
+    }
+
+    $msgParts = [];
+    if ($count > 0) $msgParts[] = "新增 {$count} 个";
+    if ($updateCount > 0) $msgParts[] = "修改 {$updateCount} 个";
+    $message = "✅ " . (implode('，', $msgParts) ?: '无变更。');
 }
 
 // Get existing fake stocks
