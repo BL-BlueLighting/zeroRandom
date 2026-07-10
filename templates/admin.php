@@ -612,53 +612,11 @@ include __DIR__ . '/layout/header.php';
             </form>
         </section>
 
-        <!-- Fake Stock Generator -->
+        <!-- Fake Stock Manager -->
         <section class="admin-section">
-            <h2>🪪 假题目生成器</h2>
-            <p class="text-muted">创建假题目作为股票，来源标记为 siliconflow_is_sb</p>
-            <form method="POST" class="admin-form">
-                <input type="hidden" name="action" value="create_fake_stock">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>题号 (Symbol)</label>
-                        <input type="text" name="fake_symbol" required class="form-input" placeholder="如 FAKE001" style="width:120px">
-                    </div>
-                    <div class="form-group" style="flex:2">
-                        <label>题目名称</label>
-                        <input type="text" name="fake_name" required class="form-input" placeholder="如 测试题目 A">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>稀有度</label>
-                        <select name="fake_rarity" class="form-input" style="width:120px">
-                            <?php if ($isKs): ?>
-                            <?php foreach (GachaEngine::KS_RARITY_ORDER as $r): ?>
-                            <option value="<?= $r ?>"><?= GachaEngine::KS_RARITY_NAMES[$r] ?></option>
-                            <?php endforeach; ?>
-                            <?php else: ?>
-                            <option value="common">普通</option>
-                            <option value="rare">稀有</option>
-                            <option value="epic">史诗</option>
-                            <option value="legendary">传说</option>
-                            <option value="claude">Claude</option>
-                            <option value="gpt">GPT</option>
-                            <option value="gemini">Gemini</option>
-                            <option value="deepseek">DeepSeek</option>
-                            <?php endif; ?>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>初始市场价格</label>
-                        <input type="number" name="fake_price" value="10" min="0.01" step="0.01" class="form-input" style="width:100px">
-                    </div>
-                    <div class="form-group" style="flex:1">
-                        <label>分类</label>
-                        <input type="text" name="fake_category" value="未分类" class="form-input" placeholder="分类">
-                    </div>
-                </div>
-                <button class="btn btn-primary">🪪 创建假题目</button>
-            </form>
+            <h2>🪪 假题目管理</h2>
+            <p class="text-muted">卡片式编辑器，可批量添加修改假题目</p>
+            <a href="<?= url('/fake_stocks.php') ?>" class="btn btn-primary">🪪 打开假题目管理</a>
         </section>
 
         <!-- Bulk Edit Stocks -->
