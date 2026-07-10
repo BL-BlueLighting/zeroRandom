@@ -31,7 +31,7 @@ class TradingEngine {
         if (!empty($stock['limited_edition'])) {
             // Must already hold this limited card to buy more from stock page
             $holdDb = Database::getInstance();
-            $holdCheck = $holdDb->prepare("SELECT id, quantity FROM holdings WHERE user_id = ? AND stock_id = ?");
+            $holdCheck = $holdDb->prepare("SELECT id, quantity FROM " . ks_table("holdings") . " WHERE user_id = ? AND stock_id = ?");
             $holdCheck->execute([$userId, $stockId]);
             $existingHold = $holdCheck->fetch();
             if (!$existingHold || (int)$existingHold['quantity'] <= 0) {
@@ -71,7 +71,7 @@ class TradingEngine {
                 ->execute([$totalCost, $totalCost, $userId]);
 
             // Update holdings
-            $stmt = $db->prepare("SELECT * FROM holdings WHERE user_id = ? AND stock_id = ?");
+            $stmt = $db->prepare("SELECT * FROM " . ks_table("holdings") . " WHERE user_id = ? AND stock_id = ?");
             $stmt->execute([$userId, $stockId]);
             $holding = $stmt->fetch();
 
@@ -82,10 +82,10 @@ class TradingEngine {
                 $newQty = $oldQty + $quantity;
                 $newAvgCost = ($oldCost * $oldQty + $subtotal) / $newQty;
 
-                $stmt = $db->prepare("UPDATE holdings SET quantity = ?, avg_cost = ? WHERE id = ?");
+                $stmt = $db->prepare("UPDATE " . ks_table("holdings") . " SET quantity = ?, avg_cost = ? WHERE id = ?");
                 $stmt->execute([$newQty, round($newAvgCost, 4), $holding['id']]);
             } else {
-                $stmt = $db->prepare("INSERT INTO holdings (user_id, stock_id, quantity, avg_cost) VALUES (?, ?, ?, ?)");
+                $stmt = $db->prepare("INSERT INTO " . ks_table("holdings") . " (user_id, stock_id, quantity, avg_cost) VALUES (?, ?, ?, ?)");
                 $stmt->execute([$userId, $stockId, $quantity, $pricePerShare]);
             }
 
@@ -166,7 +166,7 @@ class TradingEngine {
         $db = Database::getInstance();
 
         // Check holdings
-        $stmt = $db->prepare("SELECT * FROM holdings WHERE user_id = ? AND stock_id = ?");
+        $stmt = $db->prepare("SELECT * FROM " . ks_table("holdings") . " WHERE user_id = ? AND stock_id = ?");
         $stmt->execute([$userId, $stockId]);
         $holding = $stmt->fetch();
 
@@ -187,10 +187,10 @@ class TradingEngine {
             $remainingQty = $currentQty - $quantity;
 
             if ($remainingQty <= 0) {
-                $db->prepare("DELETE FROM holdings WHERE id = ?")->execute([$holding['id']]);
+                $db->prepare("DELETE FROM " . ks_table("holdings") . " WHERE id = ?")->execute([$holding['id']]);
             } else {
                 // Keep average cost the same
-                $db->prepare("UPDATE holdings SET quantity = ? WHERE id = ?")
+                $db->prepare("UPDATE " . ks_table("holdings") . " SET quantity = ? WHERE id = ?")
                     ->execute([$remainingQty, $holding['id']]);
             }
 
@@ -293,9 +293,9 @@ class TradingEngine {
                     THEN ROUND(((s.current_price - h.avg_cost) / h.avg_cost) * 100, 2)
                     ELSE 0
                 END as profit_loss_pct
-            FROM holdings h
+            FROM " . ks_table("holdings") . " h
             JOIN stocks s ON h.stock_id = s.id
-            WHERE h.user_id = ? AND h.quantity > 0{$ksFilter}
+            WHERE h.user_id = ? AND h.quantity > 0
             ORDER BY {$orderClause}
         ");
         $stmt->execute([$userId]);
@@ -349,7 +349,7 @@ class TradingEngine {
             $stmt->execute([$userId, 'withdraw', $totalProfit, "提现盈利 {$totalProfit} 枚代币"]);
 
             // Reset avg_cost to current_price for profitable holdings
-            $updateStmt = $db->prepare("UPDATE holdings SET avg_cost = ? WHERE user_id = ? AND stock_id = ?");
+            $updateStmt = $db->prepare("UPDATE " . ks_table("holdings") . " SET avg_cost = ? WHERE user_id = ? AND stock_id = ?");
             foreach ($updated as $u) {
                 $updateStmt->execute([$u['new_avg_cost'], $userId, $u['stock_id']]);
             }
